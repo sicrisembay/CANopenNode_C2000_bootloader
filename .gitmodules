@@ -1,0 +1,4 @@
+[submodule "CANopenNode"]
+	path = CANopenNode
+	url = https://github.com/sicrisembay/CANopenNode.git
+	branch = C2000_port
