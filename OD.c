@@ -24,8 +24,6 @@ OD_ATTR_PERSIST_COMM OD_PERSIST_COMM_t OD_PERSIST_COMM = {
     .x1000_deviceType = 0x00000000,
     .x1014_COB_ID_EMCY = 0x00000080,
     .x1015_inhibitTimeEMCY = 0x0000,
-    .x1016_consumerHeartbeatTime_sub0 = 0x08,
-    .x1016_consumerHeartbeatTime = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000},
     .x1017_producerHeartbeatTime = 0x0000
 };
 
@@ -49,7 +47,6 @@ typedef struct {
     OD_obj_array_t o_1003_pre_definedErrorField;
     OD_obj_var_t o_1014_COB_ID_EMCY;
     OD_obj_var_t o_1015_inhibitTimeEMCY;
-    OD_obj_array_t o_1016_consumerHeartbeatTime;
     OD_obj_var_t o_1017_producerHeartbeatTime;
     OD_obj_array_t o_1F50_downloadProgramData;
     OD_obj_array_t o_1F51_programControl;
@@ -84,14 +81,6 @@ static CO_PROGMEM ODObjs_t ODObjs = {
         .dataOrig = &OD_PERSIST_COMM.x1015_inhibitTimeEMCY,
         .attribute = ODA_SDO_RW | ODA_MB,
         .dataLength = 2
-    },
-    .o_1016_consumerHeartbeatTime = {
-        .dataOrig0 = &OD_PERSIST_COMM.x1016_consumerHeartbeatTime_sub0,
-        .dataOrig = &OD_PERSIST_COMM.x1016_consumerHeartbeatTime[0],
-        .attribute0 = ODA_SDO_R,
-        .attribute = ODA_SDO_RW | ODA_MB,
-        .dataElementLength = 4,
-        .dataElementSizeof = sizeof(uint32_t)
     },
     .o_1017_producerHeartbeatTime = {
         .dataOrig = &OD_PERSIST_COMM.x1017_producerHeartbeatTime,
@@ -134,7 +123,6 @@ static OD_ATTR_OD OD_entry_t ODList[] = {
     {0x1003, 0x11, ODT_ARR, &ODObjs.o_1003_pre_definedErrorField, NULL},
     {0x1014, 0x01, ODT_VAR, &ODObjs.o_1014_COB_ID_EMCY, NULL},
     {0x1015, 0x01, ODT_VAR, &ODObjs.o_1015_inhibitTimeEMCY, NULL},
-    {0x1016, 0x09, ODT_ARR, &ODObjs.o_1016_consumerHeartbeatTime, NULL},
     {0x1017, 0x01, ODT_VAR, &ODObjs.o_1017_producerHeartbeatTime, NULL},
     {0x1F50, 0x02, ODT_ARR, &ODObjs.o_1F50_downloadProgramData, NULL},
     {0x1F51, 0x02, ODT_ARR, &ODObjs.o_1F51_programControl, NULL},

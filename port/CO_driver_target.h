@@ -135,6 +135,18 @@ typedef struct {
 #define CO_LOCK_OD(CAN_MODULE)          /// TODO
 #define CO_UNLOCK_OD(CAN_MODULE)        /// TODO
 
+/* Disable Heartbeat Consumer */
+#define CO_CONFIG_HB_CONS   0
+
+/* Disable LSS */
+#define CO_CONFIG_LSS       0
+
+/* Disable PDO */
+#define CO_CONFIG_PDO       0
+
+/* Disable SYNC */
+#define CO_CONFIG_SYNC      0
+
 /* Synchronization between CAN receive and message processing threads. */
 #define CO_MemoryBarrier()
 #define CO_FLAG_READ(rxNew) ((rxNew) != NULL)

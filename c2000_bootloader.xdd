@@ -15,7 +15,7 @@
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="c2000_bootloader.xdd" fileCreator="Sicris Rey Embay" fileCreationDate="2023-06-17" fileCreationTime="19:20:50.0000000+08:00" fileModifiedBy="" fileModificationDate="2023-06-17" fileModificationTime="21:06:09.5505435+08:00" fileVersion="1" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="c2000_bootloader.xdd" fileCreator="Sicris Rey Embay" fileCreationDate="2023-06-17" fileCreationTime="19:20:50.0000000+08:00" fileModifiedBy="" fileModificationDate="2023-06-18" fileModificationTime="13:28:38.2360403+08:00" fileVersion="1" supportedLanguages="en" xmlns="">
       <q1:DeviceIdentity>
         <q1:vendorName></q1:vendorName>
         <q1:vendorID></q1:vendorID>
@@ -46,10 +46,6 @@
         <q1:dataTypeList>
           <q1:array name="Pre-defined error field" uniqueID="UID_ARR_1003">
             <q1:subrange lowerLimit="0" upperLimit="16" />
-            <UDINT />
-          </q1:array>
-          <q1:array name="Consumer heartbeat time" uniqueID="UID_ARR_1016">
-            <q1:subrange lowerLimit="0" upperLimit="8" />
             <UDINT />
           </q1:array>
           <q1:array name="Download program data" uniqueID="UID_ARR_1F50">
@@ -177,60 +173,6 @@
             <q1:defaultValue value="0" />
             <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
           </q1:parameter>
-          <q1:parameter uniqueID="UID_OBJ_1016">
-            <description lang="en">Consumer Heartbeat Time:
-  * bit 24-31: set to 0
-  * bit 16-23: Node ID of the monitored node. If 0 or greater than 127, sub-entry is not used.
-  * bit 0-15: Heartbeat time in ms (if 0, sub-intry is not used). Value should be higher than the corresponding producer heartbeat time.</description>
-            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_1016" />
-            <q1:property name="CO_countLabel" value="HB_CONS" />
-            <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
-          </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_101600">
-            <label lang="en">Highest sub-index supported</label>
-            <USINT />
-            <q1:defaultValue value="0x08" />
-          </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_101601" access="readWrite">
-            <label lang="en">Consumer heartbeat time</label>
-            <UDINT />
-            <q1:defaultValue value="0x00000000" />
-          </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_101602" access="readWrite">
-            <label lang="en">Consumer heartbeat time</label>
-            <UDINT />
-            <q1:defaultValue value="0x00000000" />
-          </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_101603" access="readWrite">
-            <label lang="en">Consumer heartbeat time</label>
-            <UDINT />
-            <q1:defaultValue value="0x00000000" />
-          </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_101604" access="readWrite">
-            <label lang="en">Consumer heartbeat time</label>
-            <UDINT />
-            <q1:defaultValue value="0x00000000" />
-          </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_101605" access="readWrite">
-            <label lang="en">Consumer heartbeat time</label>
-            <UDINT />
-            <q1:defaultValue value="0x00000000" />
-          </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_101606" access="readWrite">
-            <label lang="en">Consumer heartbeat time</label>
-            <UDINT />
-            <q1:defaultValue value="0x00000000" />
-          </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_101607" access="readWrite">
-            <label lang="en">Consumer heartbeat time</label>
-            <UDINT />
-            <q1:defaultValue value="0x00000000" />
-          </q1:parameter>
-          <q1:parameter uniqueID="UID_SUB_101608" access="readWrite">
-            <label lang="en">Consumer heartbeat time</label>
-            <UDINT />
-            <q1:defaultValue value="0x00000000" />
-          </q1:parameter>
           <q1:parameter uniqueID="UID_OBJ_1017" access="readWrite">
             <description lang="en">Heartbeat producer time in ms (0 = disable transmission).</description>
             <UINT />
@@ -301,7 +243,7 @@
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="c2000_bootloader.xdd" fileCreator="Sicris Rey Embay" fileCreationDate="2023-06-17" fileCreationTime="19:20:50.0000000+08:00" fileModificationDate="2023-06-17" fileModificationTime="21:06:09.5505435+08:00" fileVersion="1" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="c2000_bootloader.xdd" fileCreator="Sicris Rey Embay" fileCreationDate="2023-06-17" fileCreationTime="19:20:50.0000000+08:00" fileModificationDate="2023-06-18" fileModificationTime="13:28:38.2360403+08:00" fileVersion="1" supportedLanguages="en" xmlns="">
       <ApplicationLayers>
         <q2:CANopenObjectList>
           <CANopenObject index="1000" name="Device type" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_1000" />
@@ -327,17 +269,6 @@
           </CANopenObject>
           <CANopenObject index="1014" name="COB-ID EMCY" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_1014" />
           <CANopenObject index="1015" name="Inhibit time EMCY" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_1015" />
-          <CANopenObject index="1016" name="Consumer heartbeat time" objectType="8" uniqueIDRef="UID_OBJ_1016" subNumber="9">
-            <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_101600" />
-            <CANopenSubObject subIndex="01" name="Consumer heartbeat time" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_101601" />
-            <CANopenSubObject subIndex="02" name="Consumer heartbeat time" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_101602" />
-            <CANopenSubObject subIndex="03" name="Consumer heartbeat time" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_101603" />
-            <CANopenSubObject subIndex="04" name="Consumer heartbeat time" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_101604" />
-            <CANopenSubObject subIndex="05" name="Consumer heartbeat time" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_101605" />
-            <CANopenSubObject subIndex="06" name="Consumer heartbeat time" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_101606" />
-            <CANopenSubObject subIndex="07" name="Consumer heartbeat time" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_101607" />
-            <CANopenSubObject subIndex="08" name="Consumer heartbeat time" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_101608" />
-          </CANopenObject>
           <CANopenObject index="1017" name="Producer heartbeat time" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_1017" />
           <CANopenObject index="1F50" name="Download program data" objectType="8" uniqueIDRef="UID_OBJ_1F50" subNumber="2">
             <CANopenSubObject subIndex="00" name="Number of different programs supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1F5000" />

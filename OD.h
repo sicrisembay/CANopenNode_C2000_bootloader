@@ -16,7 +16,7 @@
 
         Created:      17/6/2023 7:20:50 pm
         Created By:   Sicris Rey Embay
-        Modified:     17/6/2023 9:06:09 pm
+        Modified:     18/6/2023 1:28:38 pm
         Modified By:  
 
     Device Info:
@@ -36,7 +36,6 @@
 #define OD_CNT_NMT 1
 #define OD_CNT_EM 1
 #define OD_CNT_EM_PROD 1
-#define OD_CNT_HB_CONS 1
 #define OD_CNT_HB_PROD 1
 
 
@@ -44,7 +43,6 @@
     Sizes of OD arrays
 *******************************************************************************/
 #define OD_CNT_ARR_1003 16
-#define OD_CNT_ARR_1016 8
 #define OD_CNT_ARR_1F50 1
 #define OD_CNT_ARR_1F51 1
 #define OD_CNT_ARR_1F52 2
@@ -57,8 +55,6 @@ typedef struct {
     uint32_t x1000_deviceType;
     uint32_t x1014_COB_ID_EMCY;
     uint16_t x1015_inhibitTimeEMCY;
-    uint8_t x1016_consumerHeartbeatTime_sub0;
-    uint32_t x1016_consumerHeartbeatTime[OD_CNT_ARR_1016];
     uint16_t x1017_producerHeartbeatTime;
 } OD_PERSIST_COMM_t;
 
@@ -95,11 +91,10 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H1003 &OD->list[2]
 #define OD_ENTRY_H1014 &OD->list[3]
 #define OD_ENTRY_H1015 &OD->list[4]
-#define OD_ENTRY_H1016 &OD->list[5]
-#define OD_ENTRY_H1017 &OD->list[6]
-#define OD_ENTRY_H1F50 &OD->list[7]
-#define OD_ENTRY_H1F51 &OD->list[8]
-#define OD_ENTRY_H1F52 &OD->list[9]
+#define OD_ENTRY_H1017 &OD->list[5]
+#define OD_ENTRY_H1F50 &OD->list[6]
+#define OD_ENTRY_H1F51 &OD->list[7]
+#define OD_ENTRY_H1F52 &OD->list[8]
 
 
 /*******************************************************************************
@@ -110,11 +105,10 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H1003_pre_definedErrorField &OD->list[2]
 #define OD_ENTRY_H1014_COB_ID_EMCY &OD->list[3]
 #define OD_ENTRY_H1015_inhibitTimeEMCY &OD->list[4]
-#define OD_ENTRY_H1016_consumerHeartbeatTime &OD->list[5]
-#define OD_ENTRY_H1017_producerHeartbeatTime &OD->list[6]
-#define OD_ENTRY_H1F50_downloadProgramData &OD->list[7]
-#define OD_ENTRY_H1F51_programControl &OD->list[8]
-#define OD_ENTRY_H1F52_verifyApplicationSoftware &OD->list[9]
+#define OD_ENTRY_H1017_producerHeartbeatTime &OD->list[5]
+#define OD_ENTRY_H1F50_downloadProgramData &OD->list[6]
+#define OD_ENTRY_H1F51_programControl &OD->list[7]
+#define OD_ENTRY_H1F52_verifyApplicationSoftware &OD->list[8]
 
 
 /*******************************************************************************
@@ -124,9 +118,9 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_INIT_CONFIG(config) {\
     (config).CNT_NMT = OD_CNT_NMT;\
     (config).ENTRY_H1017 = OD_ENTRY_H1017;\
-    (config).CNT_HB_CONS = OD_CNT_HB_CONS;\
-    (config).CNT_ARR_1016 = OD_CNT_ARR_1016;\
-    (config).ENTRY_H1016 = OD_ENTRY_H1016;\
+    (config).CNT_HB_CONS = 0;\
+    (config).CNT_ARR_1016 = 0;\
+    (config).ENTRY_H1016 = NULL;\
     (config).CNT_EM = OD_CNT_EM;\
     (config).ENTRY_H1001 = OD_ENTRY_H1001;\
     (config).ENTRY_H1014 = OD_ENTRY_H1014;\

@@ -56,9 +56,13 @@ MEMORY
 {
 PAGE 0:    /* Program Memory */
 
-    FLASH       : origin = 0x300000, length = 0x03FF80     /* on-chip FLASH */
+    L0SARAM     : origin = 0x008000, length = 0x001000     /* RAM block L0 */
+    RSVD_FLASH  : origin = 0x300000, length = 0x008000     /* on-chip FLASH allocated for something else */
+    APP_FLASH   : origin = 0x308000, length = 0x02FFF8     /* on-chip FLASH allocated for Application */
+    APP_BEGIN   : origin = 0x337FF8, length = 0x000008
+    BOOT_FLASH  : origin = 0x338000, length = 0x007F80     /* on-chip FLASH allocated for Bootloader */
     CSM_RSVD    : origin = 0x33FF80, length = 0x000076     /* Program with all 0x0000 when CSM is in use. */
-    BEGIN       : origin = 0x33FFF6, length = 0x000002     /* Used for "boot to Flash" bootloader mode. */
+    BOOT_BEGIN  : origin = 0x33FFF6, length = 0x000002     /* Used for "boot to Flash" bootloader mode. */
     CSM_PWL     : origin = 0x33FFF8, length = 0x000008     /* CSM password locations in FLASH */
     OTP         : origin = 0x380400, length = 0x000400     /* on-chip OTP */
     ADC_CAL     : origin = 0x380080, length = 0x000009     /* ADC_cal function in Reserved memory */
@@ -75,7 +79,7 @@ PAGE 1 :   /* Data Memory */
     RESERVED    : origin = 0x000000, length = 0x000002
     M01SARAM    : origin = 0x000002, length = 0x0007FE     /* on-chip RAM block M0, M1 */
     PIEVECT     : origin = 0xD00,    length = 0x100
-    L07SARAM    : origin = 0x008000, length = 0x008000     /* on-chip RAM block L0-L7 */
+    L17SARAM    : origin = 0x009000, length = 0x007000     /* RAM block L1-L7 */
 
     DEV_EMU     : origin = 0x000880, length = 0x000180     /* device emulation registers */
     FLASH_REGS  : origin = 0x000A80, length = 0x000060     /* FLASH registers */
@@ -141,12 +145,13 @@ PAGE 1 :   /* Data Memory */
 SECTIONS
 {
     /* Allocate program areas: */
-    .cinit              : > FLASH       PAGE = 0
-    .pinit              : > FLASH       PAGE = 0
-    .text               : > FLASH       PAGE = 0
-    codestart           : > BEGIN       PAGE = 0
-    ramfuncs            : LOAD = FLASH      PAGE = 0,
-                          RUN  = L07SARAM   PAGE = 1,
+    .cinit              : > BOOT_FLASH      PAGE = 0
+    .pinit              : > BOOT_FLASH      PAGE = 0
+    .text               : > BOOT_FLASH      PAGE = 0
+    app_codestart       : > APP_BEGIN       PAGE = 0
+    boot_codestart      : > BOOT_BEGIN      PAGE = 0
+    ramfuncs            : LOAD = BOOT_FLASH	PAGE = 0,
+                          RUN  = L0SARAM    PAGE = 0,
                           LOAD_START(_RamfuncsLoadStart),
                           LOAD_SIZE(_RamfuncsLoadSize),
                           LOAD_END(_RamfuncsLoadEnd),
@@ -156,28 +161,28 @@ SECTIONS
     csm_rsvd            : > CSM_RSVD    PAGE = 0
 
     /* Allocate uninitalized data sections: */
-    .stack              : > M01SARAM | L07SARAM     PAGE = 1
-    .ebss               : > M01SARAM | L07SARAM     PAGE = 1
-    .data               : > M01SARAM | L07SARAM     PAGE = 1
-    .esysmem            : > L07SARAM | M01SARAM     PAGE = 1
-    .cio                : > L07SARAM | M01SARAM     PAGE = 1
+    .stack              : > M01SARAM | L17SARAM     PAGE = 1
+    .ebss               : > M01SARAM | L17SARAM     PAGE = 1
+    .data               : > M01SARAM | L17SARAM     PAGE = 1
+    .esysmem            : > M01SARAM | L17SARAM     PAGE = 1
+    .cio                : > M01SARAM | L17SARAM     PAGE = 1
 
     /* Initalized sections go in Flash */
     /* For SDFlash to program these, they must be allocated to page 0 */
-    .econst             : > FLASH       PAGE = 0
-    .switch             : > FLASH       PAGE = 0
-    .args               : > FLASH       PAGE = 0
+    .econst             : > BOOT_FLASH  PAGE = 0
+    .switch             : > BOOT_FLASH  PAGE = 0
+    .args               : > BOOT_FLASH  PAGE = 0
 
 #ifdef __TI_COMPILER_VERSION__
 #if __TI_COMPILER_VERSION__ >= 15009000
-    .TI.ramfunc         : {} LOAD = FLASH    PAGE = 0,
-                             RUN  = L07SARAM PAGE = 1,
+    .TI.ramfunc         : {} LOAD = BOOT_FLASH  PAGE = 0,
+                             RUN  = L17SARAM    PAGE = 1,
                              table(BINIT)
 #endif
 #endif
 
     /* Allocate IQ math areas: */
-    IQmath              : > FLASH       PAGE = 0        /* Math Code */
+    IQmath              : > BOOT_FLASH  PAGE = 0        /* Math Code */
     IQmathTables        : > IQTABLES    PAGE = 0, TYPE = NOLOAD
 
     /*

@@ -83,8 +83,6 @@ static BTC_CONFIG_ENTRY_T const BTC_CONFIG_TABLE[] = {
 #define N_BTC_CONFIG_ENTRY      (sizeof(BTC_CONFIG_TABLE) / sizeof(BTC_CONFIG_TABLE[0]))
 #define CAN_MAILBOX_TX          (31)
 
-static void can_hwi_handler(uint32_t arg);
-
 /******************************************************************************/
 void CO_CANsetConfigurationMode(void *CANptr){
     /* Put CAN module in configuration mode */
@@ -146,7 +144,152 @@ CO_ReturnError_t CO_CANmodule_init(
         uint16_t                txSize,
         uint16_t                CANbitRate)
 {
-    /// TODO
+    /* Local variable used for CAN configuration */
+    volatile struct ECAN_REGS * ECanRegPtr;
+    volatile struct MBOX * MBoxPtr;
+    volatile union CANLAM_REG * LamPtr;
+    union CANMC_REG shadow_canmc;
+    union CANES_REG shadow_canes;
+    union CANBTC_REG shadow_canbtc;
+    union CANMSGID_REG shadow_canmsgid;
+    union CANLAM_REG shadow_canlam;
+    uint16_t i;
+
+    /* verify arguments */
+    if(CANmodule==NULL || rxArray==NULL || txArray==NULL || CANptr==NULL){
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+
+    ECanRegPtr = (volatile struct ECAN_REGS *)CANptr;
+
+    /* Configure object variables */
+    CANmodule->CANptr = CANptr;
+    CANmodule->rxArray = rxArray;
+    CANmodule->rxSize = rxSize;
+    CANmodule->txArray = txArray;
+    CANmodule->txSize = txSize;
+    CANmodule->CANerrorStatus = 0;
+    CANmodule->CANnormal = false;
+    CANmodule->useCANrxFilters = (rxSize <= 31U) ? true : false;  // Receive uses Mailbox0-30, Transmit uses Mailbox31
+    CANmodule->bufferInhibitFlag = false;
+    CANmodule->firstCANtxMessage = true;
+    CANmodule->CANtxCount = 0U;
+    CANmodule->errOld = 0U;
+
+    for(i = 0; i < rxSize; i++) {
+        rxArray[i].ident = 0U;
+        rxArray[i].mask = 0xFFFFU;
+        rxArray[i].object = NULL;
+        rxArray[i].CANrx_callback = NULL;
+    }
+
+    for(i = 0; i < txSize; i++) {
+        txArray[i].bufferFull = false;
+    }
+
+    /* Configure CAN module registers */
+    if(ECanRegPtr == &ECanaRegs) {
+        MBoxPtr = &(ECanaMboxes.MBOX0);
+        LamPtr = &(ECanaLAMRegs.LAM0);
+    } else if(ECanRegPtr == &ECanbRegs) {
+        MBoxPtr = &(ECanbMboxes.MBOX0);
+        LamPtr = &(ECanbLAMRegs.LAM0);
+    } else {
+        return CO_ERROR_ILLEGAL_ARGUMENT;
+    }
+
+    EALLOW;
+
+    shadow_canmc.all = ECanRegPtr->CANMC.all;
+    shadow_canmc.bit.DBO = 0;
+    shadow_canmc.bit.SCB = 1;
+    shadow_canmc.bit.CCR = 1;
+    shadow_canmc.bit.ABO = 1;
+    ECanRegPtr->CANMC.all = shadow_canmc.all;
+
+    do {
+        shadow_canes.all = ECanRegPtr->CANES.all;
+    } while(shadow_canes.bit.CCE != 1);
+
+    for(i = 0; i < 32; i++) {
+        MBoxPtr[i].MSGCTRL.all = 0x00000000;
+    }
+
+    ECanRegPtr->CANGIM.all = 0x00000000;        // disable all interrupts
+    ECanRegPtr->CANMIM.all = 0x00000000;        // disable all mailbox interrupts
+    ECanRegPtr->CANMIL.all = 0x00000000;        // mailbox interrupts on interrupt line0
+    ECanRegPtr->CANTA.all  = 0xFFFFFFFF;        // Clears CANTA by writing 1's
+    ECanRegPtr->CANRMP.all = 0xFFFFFFFF;        // Clears RMP by writing 1's
+    ECanRegPtr->CANGIF0.all = 0xFFFFFFFF;       // Clears Line0 Global interrupt flags by writing 1's
+    ECanRegPtr->CANGIF1.all = 0xFFFFFFFF;       // Clears Line1 Global interrupt flags by writing 1's
+    ECanRegPtr->CANME.all  = 0x00000000;        // disable all mailbox
+    ECanRegPtr->CANMD.all  = 0x00000000;        // Default all mailbox as transmit.
+
+    /* Configure CAN timing */
+    for(i = 0; i < N_BTC_CONFIG_ENTRY; i++) {
+        if(CANbitRate == BTC_CONFIG_TABLE[i].bit_rate_kbps) {
+            shadow_canbtc.all = 0;
+            shadow_canbtc.bit.BRPREG = BTC_CONFIG_TABLE[i].brp;
+            shadow_canbtc.bit.TSEG1REG = BTC_CONFIG_TABLE[i].tseg1;
+            shadow_canbtc.bit.TSEG2REG = BTC_CONFIG_TABLE[i].tseg2;
+            shadow_canbtc.bit.SAM = 1;
+            ECanRegPtr->CANBTC.all = shadow_canbtc.all;
+            break;
+        }
+    }
+
+    if(i == N_BTC_CONFIG_ENTRY) {
+        /* Invalid Bit Rate */
+        EDIS;
+        return CO_ERROR_ILLEGAL_BAUDRATE;
+    }
+
+    /* Configure CAN module hardware filters */
+    if(CANmodule->useCANrxFilters){
+        /* CAN module filters are used, they will be configured with */
+        /* CO_CANrxBufferInit() functions, called by separate CANopen */
+        /* init functions. */
+        shadow_canmsgid.all = 0;
+        shadow_canmsgid.bit.IDE = 0;    // Uses 11-bit Standard identifier
+        shadow_canmsgid.bit.STDMSGID = 0;
+        shadow_canmsgid.bit.AME = 1;    // Use acceptance mask
+        for(i = 0; i < 32; i++) {
+            MBoxPtr[i].MSGID.all = shadow_canmsgid.all;
+        }
+
+        /* Configure all masks so, that received message must match filter */
+        shadow_canlam.all = 0;
+        shadow_canlam.bit.LAMI = 1;         // Uses local acceptance mask
+        shadow_canlam.bit.LAM_L = 0;
+        shadow_canlam.bit.LAM_H = 0x0000;   // Received 11-bit Standard Identifier
+                                            // must match the corresponding MSGID register
+        for(i = 0; i < 32; i++) {
+            LamPtr[i].all = shadow_canlam.all;
+        }
+    } else {
+        /* CAN module filters are not used, all messages with standard 11-bit */
+        /* identifier will be received */
+        shadow_canmsgid.all = 0;
+        shadow_canmsgid.bit.IDE = 0;    // Uses 11-bit Standard identifier
+        shadow_canmsgid.bit.STDMSGID = 0;
+        shadow_canmsgid.bit.AME = 1;    // Use acceptance mask
+        for(i = 0; i < 32; i++) {
+            MBoxPtr[i].MSGID.all = shadow_canmsgid.all;
+        }
+
+        /* Configure mask 0 so, that all messages with standard identifier are accepted */
+        shadow_canlam.all = 0;
+        shadow_canlam.bit.LAMI = 1;         // Use local acceptance mask
+        shadow_canlam.bit.LAM_L = 0;
+        shadow_canlam.bit.LAM_H = 0x1FFC;   // Don't care on 11-bit Standard Identifier, LAM[28:18]
+                                            // Accepts all standard identifier
+        for(i = 0; i < 32; i++) {
+            LamPtr[i].all = shadow_canlam.all;
+        }
+
+    }
+
+    EDIS;
 
     return CO_ERROR_NO;
 }
@@ -201,13 +344,11 @@ CO_ReturnError_t CO_CANrxBufferInit(
     volatile struct ECAN_REGS * ECanRegPtr;
     volatile struct MBOX * MBoxPtr;
     volatile union CANLAM_REG * LamPtr;
-    union CANGIM_REG shadow_cangim;
     union CANME_REG shadow_canme;
     union CANMSGID_REG shadow_canmsgid;
     union CANMSGCTRL_REG shadow_canmsgctrl;
     union CANLAM_REG shadow_canlam;
     union CANMD_REG shadow_canmd;
-    union CANMIM_REG shadow_canmim;
 
     CO_ReturnError_t ret = CO_ERROR_NO;
 
@@ -236,20 +377,6 @@ CO_ReturnError_t CO_CANrxBufferInit(
         /* Configure object variables */
         buffer->object = object;
         buffer->CANrx_callback = CANrx_callback;
-
-        /* Disable CAN global interrupt */
-        EALLOW;
-        shadow_cangim.all = ECanRegPtr->CANGIM.all;
-        shadow_cangim.bit.I0EN = 0;
-        ECanRegPtr->CANGIM.all = shadow_cangim.all;
-        EDIS;
-
-        /* Disable Mailbox Interrupt */
-        EALLOW;
-        shadow_canmim.all = ECanRegPtr->CANMIM.all;
-        shadow_canmim.all &= ~(1UL << index);
-        ECanRegPtr->CANMIM.all = shadow_canmim.all;
-        EDIS;
 
         /* Disable Mailbox to allow configuration */
         shadow_canme.all = ECanRegPtr->CANME.all;
@@ -292,20 +419,6 @@ CO_ReturnError_t CO_CANrxBufferInit(
         shadow_canme.all = ECanRegPtr->CANME.all;
         shadow_canme.all |= (1UL << index);
         ECanRegPtr->CANME.all = shadow_canme.all;
-
-        /* Re-enable mailbox interrupt */
-        EALLOW;
-        shadow_canmim.all = ECanRegPtr->CANMIM.all;
-        shadow_canmim.all |= (1UL << index);
-        ECanRegPtr->CANMIM.all = shadow_canmim.all;
-        EDIS;
-
-        /* Re-enable interrupt */
-        EALLOW;
-        shadow_cangim.all = ECanRegPtr->CANGIM.all;
-        shadow_cangim.bit.I0EN = 1;
-        ECanRegPtr->CANGIM.all = shadow_cangim.all;
-        EDIS;
     }
     else{
         ret = CO_ERROR_ILLEGAL_ARGUMENT;
@@ -325,8 +438,6 @@ CO_CANtx_t *CO_CANtxBufferInit(
         bool_t                  syncFlag)
 {
     CO_CANtx_t *buffer = NULL;
-    volatile struct ECAN_REGS * ECanRegPtr;
-    union CANMIM_REG shadow_canmim;
 
     if((CANmodule != NULL) && (index < CANmodule->txSize)){
         /* get specific buffer */
@@ -343,14 +454,6 @@ CO_CANtx_t *CO_CANtxBufferInit(
         buffer->syncFlag = syncFlag;
     }
 
-    if(CANmodule != NULL) {
-        ECanRegPtr = (volatile struct ECAN_REGS *)(CANmodule->CANptr);
-        EALLOW;
-        shadow_canmim.all = ECanRegPtr->CANMIM.all;
-        shadow_canmim.all |= (1UL << CAN_MAILBOX_TX);
-        ECanRegPtr->CANMIM.all = shadow_canmim.all;
-        EDIS;
-    }
     return buffer;
 }
 
@@ -746,12 +849,4 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
             }
         }
     }
-}
-
-
-#pragma CODE_SECTION(can_hwi_handler, "ramfuncs");
-static void can_hwi_handler(uint32_t arg)
-{
-    CO_CANmodule_t * CANmodule = (CO_CANmodule_t *)arg;
-    CO_CANinterrupt(CANmodule);
 }
