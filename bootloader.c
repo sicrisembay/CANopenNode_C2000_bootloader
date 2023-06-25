@@ -5,6 +5,7 @@
 #include "DSP2833x_Device.h"
 #include "CANopen.h"
 #include "OD.h"
+#include "302/CO_Prog_F28335.h"
 
 
 #define NMT_CONTROL   CO_NMT_STARTUP_TO_OPERATIONAL   \
@@ -275,6 +276,10 @@ int main()
         }
 #endif
 
+#if (CO_CONFIG_PROG & CO_CONFIG_PROG_ENABLE)
+        err = CO_Prog_F28335_init(CO->CANmodule);
+#endif
+
         /* Start CAN */
         CO_CANsetNormalMode(CO->CANmodule);
         reset = CO_RESET_NOT;
@@ -296,6 +301,9 @@ int main()
         CpuTimer0Regs.TCR.bit.TSS = 0;
 
         while(reset == CO_RESET_NOT) {
+            extern void CO_CANpacket_process(CO_CANmodule_t *CANmodule);
+            CO_CANpacket_process(CO->CANmodule);
+
             if(CpuTimer0Regs.TCR.bit.TIF) {
                 /* Clear flag */
                 CpuTimer0Regs.TCR.bit.TIF = 1;

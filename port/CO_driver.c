@@ -673,10 +673,7 @@ void CO_CANmodule_process(CO_CANmodule_t *CANmodule) {
     }
 }
 
-
-/******************************************************************************/
-#pragma CODE_SECTION(CO_CANinterrupt, "ramfuncs");
-void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
+void CO_CANpacket_process(CO_CANmodule_t *CANmodule) {
     volatile struct ECAN_REGS * ECanRegPtr;
     volatile struct MBOX * MBoxPtr;
     union CANGIF0_REG shadow_cangif0;
@@ -704,15 +701,8 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
         return;
     }
 
-    /* Clear Global interrupt flag */
-    shadow_cangif0.all = ECanRegPtr->CANGIF0.all;
-    if(shadow_cangif0.bit.RMLIF0) {
-        CANmodule->CANerrorStatus |= CO_CAN_ERRRX_OVERFLOW;
-    }
-    ECanRegPtr->CANGIF0.all = shadow_cangif0.all;
-
-    /* receive interrupt */
-    shadow_canrmp.all = ECanRegPtr->CANRMP.all & ECanRegPtr->CANMIM.all;
+    /* receive */
+    shadow_canrmp.all = ECanRegPtr->CANRMP.all;
 
     if(shadow_canrmp.all != 0) {
         CO_CANrxMsg_t *rcvMsg;      /* pointer to received message in CAN module */
@@ -774,7 +764,7 @@ void CO_CANinterrupt(CO_CANmodule_t *CANmodule){
 
     /* transmit interrupt */
     shadow_cantrs.all = ECanRegPtr->CANTRS.all;
-    shadow_canta.all = ECanRegPtr->CANTA.all & ECanRegPtr->CANMIM.all;
+    shadow_canta.all = ECanRegPtr->CANTA.all;
     if(shadow_canta.all){
         /* Clear interrupt flag */
         ECanRegPtr->CANTA.all = shadow_canta.all;

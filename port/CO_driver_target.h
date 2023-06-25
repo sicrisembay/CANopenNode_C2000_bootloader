@@ -147,6 +147,17 @@ typedef struct {
 /* Disable SYNC */
 #define CO_CONFIG_SYNC      0
 
+/* Disable Time */
+#define CO_CONFIG_TIME      0
+
+#define CO_CONFIG_SDO_SRV (CO_CONFIG_SDO_SRV_SEGMENTED | \
+                           CO_CONFIG_SDO_SRV_BLOCK | \
+                           CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE | \
+                           CO_CONFIG_GLOBAL_FLAG_TIMERNEXT | \
+                           CO_CONFIG_GLOBAL_FLAG_OD_DYNAMIC)
+#define CO_CONFIG_SDO_SRV_BUFFER_SIZE 1024
+#define CO_CONFIG_CRC16   (CO_CONFIG_CRC16_ENABLE)
+
 /* Synchronization between CAN receive and message processing threads. */
 #define CO_MemoryBarrier()
 #define CO_FLAG_READ(rxNew) ((rxNew) != NULL)

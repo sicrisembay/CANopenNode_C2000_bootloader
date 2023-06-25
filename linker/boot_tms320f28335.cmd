@@ -150,6 +150,7 @@ SECTIONS
     .text               : > BOOT_FLASH      PAGE = 0
     app_codestart       : > APP_BEGIN       PAGE = 0
     boot_codestart      : > BOOT_BEGIN      PAGE = 0
+    copysections        : > BOOT_FLASH      PAGE = 0
     ramfuncs            : LOAD = BOOT_FLASH	PAGE = 0,
                           RUN  = L0SARAM    PAGE = 0,
                           LOAD_START(_RamfuncsLoadStart),

@@ -15,7 +15,7 @@
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="c2000_bootloader.xdd" fileCreator="Sicris Rey Embay" fileCreationDate="2023-06-17" fileCreationTime="19:20:50.0000000+08:00" fileModifiedBy="" fileModificationDate="2023-06-18" fileModificationTime="13:28:38.2360403+08:00" fileVersion="1" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="c2000_bootloader.xdd" fileCreator="Sicris Rey Embay" fileCreationDate="2023-06-17" fileCreationTime="19:20:50.0000000+08:00" fileModifiedBy="" fileModificationDate="2023-06-24" fileModificationTime="21:34:47.7173028+08:00" fileVersion="1" supportedLanguages="en" xmlns="">
       <q1:DeviceIdentity>
         <q1:vendorName></q1:vendorName>
         <q1:vendorID></q1:vendorID>
@@ -243,7 +243,7 @@
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="c2000_bootloader.xdd" fileCreator="Sicris Rey Embay" fileCreationDate="2023-06-17" fileCreationTime="19:20:50.0000000+08:00" fileModificationDate="2023-06-18" fileModificationTime="13:28:38.2360403+08:00" fileVersion="1" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="c2000_bootloader.xdd" fileCreator="Sicris Rey Embay" fileCreationDate="2023-06-17" fileCreationTime="19:20:50.0000000+08:00" fileModificationDate="2023-06-24" fileModificationTime="21:34:47.7173028+08:00" fileVersion="1" supportedLanguages="en" xmlns="">
       <ApplicationLayers>
         <q2:CANopenObjectList>
           <CANopenObject index="1000" name="Device type" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_1000" />
