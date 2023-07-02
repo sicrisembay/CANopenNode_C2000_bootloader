@@ -159,6 +159,7 @@ int main()
 
     /*
      * Disable interrupt
+     * Bootloader runs without using any interrupt.
      */
     DINT;
     IER = 0x0000;

@@ -16,7 +16,7 @@
 
         Created:      17/6/2023 7:20:50 pm
         Created By:   Sicris Rey Embay
-        Modified:     18/6/2023 1:28:38 pm
+        Modified:     1/7/2023 12:16:44 pm
         Modified By:  
 
     Device Info:
@@ -56,6 +56,13 @@ typedef struct {
     uint32_t x1014_COB_ID_EMCY;
     uint16_t x1015_inhibitTimeEMCY;
     uint16_t x1017_producerHeartbeatTime;
+    struct {
+        uint8_t highestSub_indexSupported;
+        uint32_t vendor_ID;
+        uint32_t productCode;
+        uint32_t revisionNumber;
+        uint32_t serialNumber;
+    } x1018_identity;
 } OD_PERSIST_COMM_t;
 
 typedef struct {
@@ -92,9 +99,10 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H1014 &OD->list[3]
 #define OD_ENTRY_H1015 &OD->list[4]
 #define OD_ENTRY_H1017 &OD->list[5]
-#define OD_ENTRY_H1F50 &OD->list[6]
-#define OD_ENTRY_H1F51 &OD->list[7]
-#define OD_ENTRY_H1F52 &OD->list[8]
+#define OD_ENTRY_H1018 &OD->list[6]
+#define OD_ENTRY_H1F50 &OD->list[7]
+#define OD_ENTRY_H1F51 &OD->list[8]
+#define OD_ENTRY_H1F52 &OD->list[9]
 
 
 /*******************************************************************************
@@ -106,9 +114,10 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H1014_COB_ID_EMCY &OD->list[3]
 #define OD_ENTRY_H1015_inhibitTimeEMCY &OD->list[4]
 #define OD_ENTRY_H1017_producerHeartbeatTime &OD->list[5]
-#define OD_ENTRY_H1F50_downloadProgramData &OD->list[6]
-#define OD_ENTRY_H1F51_programControl &OD->list[7]
-#define OD_ENTRY_H1F52_verifyApplicationSoftware &OD->list[8]
+#define OD_ENTRY_H1018_identity &OD->list[6]
+#define OD_ENTRY_H1F50_downloadProgramData &OD->list[7]
+#define OD_ENTRY_H1F51_programControl &OD->list[8]
+#define OD_ENTRY_H1F52_verifyApplicationSoftware &OD->list[9]
 
 
 /*******************************************************************************

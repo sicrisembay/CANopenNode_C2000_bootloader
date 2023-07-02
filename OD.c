@@ -21,10 +21,17 @@
     OD data initialization of all groups
 *******************************************************************************/
 OD_ATTR_PERSIST_COMM OD_PERSIST_COMM_t OD_PERSIST_COMM = {
-    .x1000_deviceType = 0x00000000,
+    .x1000_deviceType = 0x544F4F42,
     .x1014_COB_ID_EMCY = 0x00000080,
     .x1015_inhibitTimeEMCY = 0x0000,
-    .x1017_producerHeartbeatTime = 0x0000
+    .x1017_producerHeartbeatTime = 0x1388,
+    .x1018_identity = {
+        .highestSub_indexSupported = 0x04,
+        .vendor_ID = 0x4C4C4148,
+        .productCode = 0x00000000,
+        .revisionNumber = 0x00000000,
+        .serialNumber = 0x00000000
+    }
 };
 
 OD_ATTR_RAM OD_RAM_t OD_RAM = {
@@ -48,6 +55,7 @@ typedef struct {
     OD_obj_var_t o_1014_COB_ID_EMCY;
     OD_obj_var_t o_1015_inhibitTimeEMCY;
     OD_obj_var_t o_1017_producerHeartbeatTime;
+    OD_obj_record_t o_1018_identity[5];
     OD_obj_array_t o_1F50_downloadProgramData;
     OD_obj_array_t o_1F51_programControl;
     OD_obj_array_t o_1F52_verifyApplicationSoftware;
@@ -87,6 +95,38 @@ static CO_PROGMEM ODObjs_t ODObjs = {
         .attribute = ODA_SDO_RW | ODA_MB,
         .dataLength = 2
     },
+    .o_1018_identity = {
+        {
+            .dataOrig = &OD_PERSIST_COMM.x1018_identity.highestSub_indexSupported,
+            .subIndex = 0,
+            .attribute = ODA_SDO_R,
+            .dataLength = 1
+        },
+        {
+            .dataOrig = &OD_PERSIST_COMM.x1018_identity.vendor_ID,
+            .subIndex = 1,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_PERSIST_COMM.x1018_identity.productCode,
+            .subIndex = 2,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_PERSIST_COMM.x1018_identity.revisionNumber,
+            .subIndex = 3,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        },
+        {
+            .dataOrig = &OD_PERSIST_COMM.x1018_identity.serialNumber,
+            .subIndex = 4,
+            .attribute = ODA_SDO_R | ODA_MB,
+            .dataLength = 4
+        }
+    },
     .o_1F50_downloadProgramData = {
         .dataOrig0 = &OD_RAM.x1F50_downloadProgramData_sub0,
         .dataOrig = NULL,
@@ -124,6 +164,7 @@ static OD_ATTR_OD OD_entry_t ODList[] = {
     {0x1014, 0x01, ODT_VAR, &ODObjs.o_1014_COB_ID_EMCY, NULL},
     {0x1015, 0x01, ODT_VAR, &ODObjs.o_1015_inhibitTimeEMCY, NULL},
     {0x1017, 0x01, ODT_VAR, &ODObjs.o_1017_producerHeartbeatTime, NULL},
+    {0x1018, 0x05, ODT_REC, &ODObjs.o_1018_identity, NULL},
     {0x1F50, 0x02, ODT_ARR, &ODObjs.o_1F50_downloadProgramData, NULL},
     {0x1F51, 0x02, ODT_ARR, &ODObjs.o_1F51_programControl, NULL},
     {0x1F52, 0x03, ODT_ARR, &ODObjs.o_1F52_verifyApplicationSoftware, NULL},

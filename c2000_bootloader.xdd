@@ -15,7 +15,7 @@
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="c2000_bootloader.xdd" fileCreator="Sicris Rey Embay" fileCreationDate="2023-06-17" fileCreationTime="19:20:50.0000000+08:00" fileModifiedBy="" fileModificationDate="2023-06-24" fileModificationTime="21:34:47.7173028+08:00" fileVersion="1" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="c2000_bootloader.xdd" fileCreator="Sicris Rey Embay" fileCreationDate="2023-06-17" fileCreationTime="19:20:50.0000000+08:00" fileModifiedBy="" fileModificationDate="2023-07-01" fileModificationTime="12:16:44.2779430+08:00" fileVersion="1" supportedLanguages="en" xmlns="">
       <q1:DeviceIdentity>
         <q1:vendorName></q1:vendorName>
         <q1:vendorID></q1:vendorID>
@@ -60,13 +60,30 @@
             <q1:subrange lowerLimit="0" upperLimit="2" />
             <UDINT />
           </q1:array>
+          <q1:struct name="Identity" uniqueID="UID_REC_1018">
+            <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_101800">
+              <USINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Vendor-ID" uniqueID="UID_RECSUB_101801">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Product code" uniqueID="UID_RECSUB_101802">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Revision number" uniqueID="UID_RECSUB_101803">
+              <UDINT />
+            </q1:varDeclaration>
+            <q1:varDeclaration name="Serial number" uniqueID="UID_RECSUB_101804">
+              <UDINT />
+            </q1:varDeclaration>
+          </q1:struct>
         </q1:dataTypeList>
         <q1:parameterList>
           <q1:parameter uniqueID="UID_OBJ_1000">
             <description lang="en">* bit 16-31: Additional information
 * bit 0-15: Device profile number</description>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x544F4F42" />
             <q1:property name="CO_countLabel" value="NMT" />
             <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
           </q1:parameter>
@@ -176,9 +193,44 @@
           <q1:parameter uniqueID="UID_OBJ_1017" access="readWrite">
             <description lang="en">Heartbeat producer time in ms (0 = disable transmission).</description>
             <UINT />
-            <q1:defaultValue value="0" />
+            <q1:defaultValue value="5000" />
             <q1:property name="CO_countLabel" value="HB_PROD" />
             <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_1018">
+            <description lang="en">* Vendor-ID, assigned by CiA
+* Product code, manufacturer specific
+* Revision number:
+  * bit 16-31: Major revision number (CANopen behavior has changed)
+  * bit 0-15: Minor revision num. (CANopen behavior has not changed)
+* Serial number, manufacturer specific</description>
+            <q1:dataTypeIDRef uniqueIDRef="UID_REC_1018" />
+            <q1:property name="CO_storageGroup" value="PERSIST_COMM" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_101800">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x04" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_101801">
+            <label lang="en">Vendor-ID</label>
+            <UDINT />
+            <q1:defaultValue value="0x4C4C4148" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_101802">
+            <label lang="en">Product code</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_101803">
+            <label lang="en">Revision number</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_101804">
+            <label lang="en">Serial number</label>
+            <UDINT />
+            <q1:defaultValue value="0x00000000" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_OBJ_1F50">
             <label lang="en">Download program data</label>
@@ -243,7 +295,7 @@
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="c2000_bootloader.xdd" fileCreator="Sicris Rey Embay" fileCreationDate="2023-06-17" fileCreationTime="19:20:50.0000000+08:00" fileModificationDate="2023-06-24" fileModificationTime="21:34:47.7173028+08:00" fileVersion="1" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="c2000_bootloader.xdd" fileCreator="Sicris Rey Embay" fileCreationDate="2023-06-17" fileCreationTime="19:20:50.0000000+08:00" fileModificationDate="2023-07-01" fileModificationTime="12:16:44.2779430+08:00" fileVersion="1" supportedLanguages="en" xmlns="">
       <ApplicationLayers>
         <q2:CANopenObjectList>
           <CANopenObject index="1000" name="Device type" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_1000" />
@@ -270,6 +322,13 @@
           <CANopenObject index="1014" name="COB-ID EMCY" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_1014" />
           <CANopenObject index="1015" name="Inhibit time EMCY" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_1015" />
           <CANopenObject index="1017" name="Producer heartbeat time" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_1017" />
+          <CANopenObject index="1018" name="Identity" objectType="9" uniqueIDRef="UID_OBJ_1018" subNumber="5">
+            <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_101800" />
+            <CANopenSubObject subIndex="01" name="Vendor-ID" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_101801" />
+            <CANopenSubObject subIndex="02" name="Product code" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_101802" />
+            <CANopenSubObject subIndex="03" name="Revision number" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_101803" />
+            <CANopenSubObject subIndex="04" name="Serial number" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_101804" />
+          </CANopenObject>
           <CANopenObject index="1F50" name="Download program data" objectType="8" uniqueIDRef="UID_OBJ_1F50" subNumber="2">
             <CANopenSubObject subIndex="00" name="Number of different programs supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1F5000" />
             <CANopenSubObject subIndex="01" name="Program number 1" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1F5001" />

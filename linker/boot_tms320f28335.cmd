@@ -57,9 +57,7 @@ MEMORY
 PAGE 0:    /* Program Memory */
 
     L0SARAM     : origin = 0x008000, length = 0x001000     /* RAM block L0 */
-    RSVD_FLASH  : origin = 0x300000, length = 0x008000     /* on-chip FLASH allocated for something else */
-    APP_FLASH   : origin = 0x308000, length = 0x02FFF8     /* on-chip FLASH allocated for Application */
-    APP_BEGIN   : origin = 0x337FF8, length = 0x000008
+    APP_FLASH   : origin = 0x300000, length = 0x038000     /* on-chip FLASH allocated for Application */
     BOOT_FLASH  : origin = 0x338000, length = 0x007F80     /* on-chip FLASH allocated for Bootloader */
     CSM_RSVD    : origin = 0x33FF80, length = 0x000076     /* Program with all 0x0000 when CSM is in use. */
     BOOT_BEGIN  : origin = 0x33FFF6, length = 0x000002     /* Used for "boot to Flash" bootloader mode. */
@@ -148,7 +146,6 @@ SECTIONS
     .cinit              : > BOOT_FLASH      PAGE = 0
     .pinit              : > BOOT_FLASH      PAGE = 0
     .text               : > BOOT_FLASH      PAGE = 0
-    app_codestart       : > APP_BEGIN       PAGE = 0
     boot_codestart      : > BOOT_BEGIN      PAGE = 0
     copysections        : > BOOT_FLASH      PAGE = 0
     ramfuncs            : LOAD = BOOT_FLASH	PAGE = 0,
@@ -156,7 +153,11 @@ SECTIONS
                           LOAD_START(_RamfuncsLoadStart),
                           LOAD_SIZE(_RamfuncsLoadSize),
                           LOAD_END(_RamfuncsLoadEnd),
-                          RUN_START(_RamfuncsRunStart)
+                          RUN_START(_RamfuncsRunStart),
+                          {
+                              -l Flash28335_API_V210.lib<*>(.econst)
+                              -l Flash28335_API_V210.lib<*>(.text)
+                          }
 
     csmpasswds          : > CSM_PWL     PAGE = 0
     csm_rsvd            : > CSM_RSVD    PAGE = 0
