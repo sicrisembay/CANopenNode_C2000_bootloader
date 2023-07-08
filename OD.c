@@ -40,7 +40,9 @@ OD_ATTR_RAM OD_RAM_t OD_RAM = {
     .x1F51_programControl_sub0 = 0x01,
     .x1F51_programControl = {0x00000000},
     .x1F52_verifyApplicationSoftware_sub0 = 0x02,
-    .x1F52_verifyApplicationSoftware = {0x00000000, 0x00000000}
+    .x1F52_verifyApplicationSoftware = {0x00000000, 0x00000000},
+    .x2000_bootloader_sub0 = 0x02,
+    .x2000_bootloader = {0x0000, 0x00FE}
 };
 
 
@@ -59,6 +61,7 @@ typedef struct {
     OD_obj_array_t o_1F50_downloadProgramData;
     OD_obj_array_t o_1F51_programControl;
     OD_obj_array_t o_1F52_verifyApplicationSoftware;
+    OD_obj_array_t o_2000_bootloader;
 } ODObjs_t;
 
 static CO_PROGMEM ODObjs_t ODObjs = {
@@ -150,6 +153,14 @@ static CO_PROGMEM ODObjs_t ODObjs = {
         .attribute = ODA_SDO_RW | ODA_MB,
         .dataElementLength = 4,
         .dataElementSizeof = sizeof(uint32_t)
+    },
+    .o_2000_bootloader = {
+        .dataOrig0 = &OD_RAM.x2000_bootloader_sub0,
+        .dataOrig = &OD_RAM.x2000_bootloader[0],
+        .attribute0 = ODA_SDO_R,
+        .attribute = ODA_SDO_RW | ODA_MB,
+        .dataElementLength = 2,
+        .dataElementSizeof = sizeof(uint16_t)
     }
 };
 
@@ -168,6 +179,7 @@ static OD_ATTR_OD OD_entry_t ODList[] = {
     {0x1F50, 0x02, ODT_ARR, &ODObjs.o_1F50_downloadProgramData, NULL},
     {0x1F51, 0x02, ODT_ARR, &ODObjs.o_1F51_programControl, NULL},
     {0x1F52, 0x03, ODT_ARR, &ODObjs.o_1F52_verifyApplicationSoftware, NULL},
+    {0x2000, 0x03, ODT_ARR, &ODObjs.o_2000_bootloader, NULL},
     {0x0000, 0x00, 0, NULL, NULL}
 };
 

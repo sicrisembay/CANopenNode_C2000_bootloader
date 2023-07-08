@@ -16,7 +16,7 @@
 
         Created:      17/6/2023 7:20:50 pm
         Created By:   Sicris Rey Embay
-        Modified:     1/7/2023 12:16:44 pm
+        Modified:     3/7/2023 9:48:28 am
         Modified By:  
 
     Device Info:
@@ -46,6 +46,7 @@
 #define OD_CNT_ARR_1F50 1
 #define OD_CNT_ARR_1F51 1
 #define OD_CNT_ARR_1F52 2
+#define OD_CNT_ARR_2000 2
 
 
 /*******************************************************************************
@@ -72,6 +73,8 @@ typedef struct {
     uint32_t x1F51_programControl[OD_CNT_ARR_1F51];
     uint8_t x1F52_verifyApplicationSoftware_sub0;
     uint32_t x1F52_verifyApplicationSoftware[OD_CNT_ARR_1F52];
+    uint8_t x2000_bootloader_sub0;
+    uint16_t x2000_bootloader[OD_CNT_ARR_2000];
 } OD_RAM_t;
 
 #ifndef OD_ATTR_PERSIST_COMM
@@ -103,6 +106,7 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H1F50 &OD->list[7]
 #define OD_ENTRY_H1F51 &OD->list[8]
 #define OD_ENTRY_H1F52 &OD->list[9]
+#define OD_ENTRY_H2000 &OD->list[10]
 
 
 /*******************************************************************************
@@ -118,6 +122,7 @@ extern OD_ATTR_OD OD_t *OD;
 #define OD_ENTRY_H1F50_downloadProgramData &OD->list[7]
 #define OD_ENTRY_H1F51_programControl &OD->list[8]
 #define OD_ENTRY_H1F52_verifyApplicationSoftware &OD->list[9]
+#define OD_ENTRY_H2000_bootloader &OD->list[10]
 
 
 /*******************************************************************************

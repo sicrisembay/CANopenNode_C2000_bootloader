@@ -19,12 +19,20 @@
 #define SDO_CLI_BLOCK false
 #define OD_STATUS_BITS NULL
 
+typedef enum {
+    MODE_RUN_BOOT,
+    MODE_TIMER,
+    N_MODE
+} mode_t;
+
 extern unsigned int RamfuncsLoadStart;
 extern unsigned int RamfuncsLoadEnd;
 extern unsigned int RamfuncsRunStart;
 
 static CO_t * CO = NULL;
 static void * CANptr = NULL; /* CAN module address */
+static mode_t bootMode = N_MODE;
+static uint16_t timerCounter = 0;
 
 #pragma CODE_SECTION(Device_reset, "ramfuncs");
 void Device_reset(void)
@@ -153,7 +161,7 @@ int main()
     uint32_t heapMemoryUsed;
     uint8_t pendingNodeId = 10; /* read from dip switches or nonvolatile memory, configurable by LSS slave */
     uint8_t activeNodeId = 10; /* Copied from CO_pendingNodeId in the communication reset section */
-    uint16_t pendingBitRate = 250;  /* read from dip switches or nonvolatile memory, configurable by LSS slave */
+    uint16_t pendingBitRate = 1000;  /* read from dip switches or nonvolatile memory, configurable by LSS slave */
     union CANTIOC_REG shadow_cantioc;
     union CANRIOC_REG shadow_canrioc;
 
@@ -191,15 +199,59 @@ int main()
      */
     InitFlashWaitState();
 
+    /*
+     * Determine Bootloader Mode
+     */
+    if(!CheckAppCrc()) {
+        /* There is no valid App in flash */
+        BOOT_FLAG_VAL = 0UL;
+        bootMode = MODE_RUN_BOOT;
+    } else {
+        if(BOOT_FLAG_VAL == APPLICATION_RUN_VAL) {
+            /* Run application */
+            BOOT_FLAG_VAL = 0UL;
+            CheckAppAndJump();
+            /*
+             * Only reaches here when App is invalid.
+             * Run bootloader
+             */
+            BOOT_FLAG_VAL = 0UL;
+            bootMode = MODE_RUN_BOOT;
+        } else if(BOOT_FLAG_VAL == BOOTLOADER_RUN_VAL) {
+            /* Run bootloader */
+            BOOT_FLAG_VAL = 0UL;
+            bootMode = MODE_RUN_BOOT;
+        } else if(BOOT_FLAG_VAL == BOOTLOADER_JUMP_VAL) {
+            /* Bootloader called directly from Application */
+            BOOT_FLAG_VAL = 0UL;
+            bootMode = MODE_RUN_BOOT;
+        } else {
+            /* Default is Timer mode */
+            bootMode = MODE_TIMER;
+            timerCounter = 0;
+        }
+    }
+
 #if CONFIG_USE_CAN_A
     CANptr = (void *)(&ECanaRegs);
     EALLOW;
     /* Configure IO */
-    GpioCtrlRegs.GPAPUD.bit.GPIO30 = 0;     // Enable pull-up for GPIO30 (CANRXA)
+#if CONFIG_CAN_A_TX_GPIO31
     GpioCtrlRegs.GPAPUD.bit.GPIO31 = 0;     //Enable pull-up for GPIO31 (CANTXA)
+    GpioCtrlRegs.GPAMUX2.bit.GPIO31 = 1;    // Configure GPIO31 for CANTXA
+#elif CONFIG_CAN_A_TX_GPIO19
+    GpioCtrlRegs.GPAPUD.bit.GPIO19 = 0;     // Enable pull-up for CANTXA
+    GpioCtrlRegs.GPAMUX2.bit.GPIO19 = 3;    // Configure GPIO19 for CANTXA
+#endif /* CONFIG_CAN_A_TX_GPIOXX */
+#if CONFIG_CAN_A_RX_GPIO30
+    GpioCtrlRegs.GPAPUD.bit.GPIO30 = 0;     // Enable pull-up for GPIO30 (CANRXA)
     GpioCtrlRegs.GPAQSEL2.bit.GPIO30 = 3;   // Asynch qual for GPIO30 (CANRXA)
     GpioCtrlRegs.GPAMUX2.bit.GPIO30 = 1;    // Configure GPIO30 for CANRXA
-    GpioCtrlRegs.GPAMUX2.bit.GPIO31 = 1;    // Configure GPIO31 for CANTXA
+#elif CONFIG_CAN_A_RX_GPIO18
+    GpioCtrlRegs.GPAPUD.bit.GPIO18 = 0;     // Enable pull-up for CANRXA
+    GpioCtrlRegs.GPAQSEL2.bit.GPIO18 = 3;   // Asynch qual for CANRXA
+    GpioCtrlRegs.GPAMUX2.bit.GPIO18 = 3;    // Configure GPIO18 for CANRXA
+#endif /* CONFIG_CAN_A_RX_GPIOXX */
     /* Enable CAN-A clock */
     SysCtrlRegs.PCLKCR0.bit.ECANAENCLK = 1;
 
@@ -308,6 +360,20 @@ int main()
             if(CpuTimer0Regs.TCR.bit.TIF) {
                 /* Clear flag */
                 CpuTimer0Regs.TCR.bit.TIF = 1;
+
+                if(bootMode == MODE_TIMER) {
+                    if(CO->SDOserver->CANrxNew) {
+                        /* Disable Timer mode when any SDO is received */
+                        bootMode = MODE_RUN_BOOT;
+                        timerCounter = 0;
+                    } else {
+                        timerCounter++;
+                        if(timerCounter >= CONFIG_TIMER_EXPIRY_MS) {
+                            BOOT_FLAG_VAL = APPLICATION_RUN_VAL;
+                            Device_reset();
+                        }
+                    }
+                }
 
                 if(!CO->nodeIdUnconfigured && CO->CANmodule->CANnormal) {
                     uint32_t timeDifference_us = 1000;

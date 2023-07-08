@@ -15,7 +15,7 @@
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="c2000_bootloader.xdd" fileCreator="Sicris Rey Embay" fileCreationDate="2023-06-17" fileCreationTime="19:20:50.0000000+08:00" fileModifiedBy="" fileModificationDate="2023-07-01" fileModificationTime="12:16:44.2779430+08:00" fileVersion="1" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="c2000_bootloader.xdd" fileCreator="Sicris Rey Embay" fileCreationDate="2023-06-17" fileCreationTime="19:20:50.0000000+08:00" fileModifiedBy="" fileModificationDate="2023-07-03" fileModificationTime="09:48:28.8772373+08:00" fileVersion="1" supportedLanguages="en" xmlns="">
       <q1:DeviceIdentity>
         <q1:vendorName></q1:vendorName>
         <q1:vendorID></q1:vendorID>
@@ -59,6 +59,10 @@
           <q1:array name="Verify Application Software" uniqueID="UID_ARR_1F52">
             <q1:subrange lowerLimit="0" upperLimit="2" />
             <UDINT />
+          </q1:array>
+          <q1:array name="Bootloader" uniqueID="UID_ARR_2000">
+            <q1:subrange lowerLimit="0" upperLimit="2" />
+            <UINT />
           </q1:array>
           <q1:struct name="Identity" uniqueID="UID_REC_1018">
             <q1:varDeclaration name="Highest sub-index supported" uniqueID="UID_RECSUB_101800">
@@ -278,6 +282,49 @@
             <UDINT />
             <q1:defaultValue value="0" />
           </q1:parameter>
+          <q1:parameter uniqueID="UID_OBJ_2000">
+            <label lang="en">Bootloader</label>
+            <q1:dataTypeIDRef uniqueIDRef="UID_ARR_2000" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_200000">
+            <label lang="en">Highest sub-index supported</label>
+            <USINT />
+            <q1:defaultValue value="0x02" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_200001" access="readWrite">
+            <description lang="en">Command Definition:
+
+0x01 : Calculate application CRC
+       Invalid CRC results to Abort SDO transfer with error code 0x06060000
+
+0x02 : Jump to application
+       This command calculates the application CRC and if valid, jumps to application.
+       Invalid CRC results to Abort SDO transfer with error code 0x06060000
+
+0x03 : Erase sector
+       This erases the sector/s specified by Erase sector mask (sub-index 0x02).
+       Failure results to Abort SDO transfer with error code 0x06060000
+       </description>
+            <UINT />
+            <q1:defaultValue value="0" />
+          </q1:parameter>
+          <q1:parameter uniqueID="UID_SUB_200002" access="readWrite">
+            <description lang="en">Flash sector mask definitions
+
+The bit definition below can be used to form a mask specifying which sectors
+will be erased by the erase API function.
+ 
+Bit0 = Sector A
+Bit1 = Sector B
+Bit2 = Sector C
+Bit3 = Sector D
+Bit4 = Sector E
+Bit5 = Sector F
+Bit6 = Sector G
+Bit7 = Sector H</description>
+            <UINT />
+            <q1:defaultValue value="0x00FE" />
+          </q1:parameter>
         </q1:parameterList>
       </q1:ApplicationProcess>
     </ProfileBody>
@@ -295,7 +342,7 @@
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="c2000_bootloader.xdd" fileCreator="Sicris Rey Embay" fileCreationDate="2023-06-17" fileCreationTime="19:20:50.0000000+08:00" fileModificationDate="2023-07-01" fileModificationTime="12:16:44.2779430+08:00" fileVersion="1" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="c2000_bootloader.xdd" fileCreator="Sicris Rey Embay" fileCreationDate="2023-06-17" fileCreationTime="19:20:50.0000000+08:00" fileModificationDate="2023-07-03" fileModificationTime="09:48:28.8772373+08:00" fileVersion="1" supportedLanguages="en" xmlns="">
       <ApplicationLayers>
         <q2:CANopenObjectList>
           <CANopenObject index="1000" name="Device type" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_1000" />
@@ -341,6 +388,11 @@
             <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1F5200" />
             <CANopenSubObject subIndex="01" name="Application software date" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1F5201" />
             <CANopenSubObject subIndex="02" name="Application software time" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_1F5202" />
+          </CANopenObject>
+          <CANopenObject index="2000" name="Bootloader" objectType="8" uniqueIDRef="UID_OBJ_2000" subNumber="3">
+            <CANopenSubObject subIndex="00" name="Highest sub-index supported" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_200000" />
+            <CANopenSubObject subIndex="01" name="Command" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_200001" />
+            <CANopenSubObject subIndex="02" name="Erase sector mask" objectType="7" PDOmapping="no" uniqueIDRef="UID_SUB_200002" />
           </CANopenObject>
         </q2:CANopenObjectList>
         <dummyUsage>

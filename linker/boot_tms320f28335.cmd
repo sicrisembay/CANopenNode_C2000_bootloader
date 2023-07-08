@@ -57,7 +57,9 @@ MEMORY
 PAGE 0:    /* Program Memory */
 
     L0SARAM     : origin = 0x008000, length = 0x001000     /* RAM block L0 */
-    APP_FLASH   : origin = 0x300000, length = 0x038000     /* on-chip FLASH allocated for Application */
+    APP_FLASH   : origin = 0x300000, length = 0x037F7E     /* on-chip FLASH allocated for Application */
+    APP_BEGIN   : origin = 0x337F7E, length = 0x000002
+    APP_CRC     : origin = 0x337F80, length = 0x000080
     BOOT_FLASH  : origin = 0x338000, length = 0x007F80     /* on-chip FLASH allocated for Bootloader */
     CSM_RSVD    : origin = 0x33FF80, length = 0x000076     /* Program with all 0x0000 when CSM is in use. */
     BOOT_BEGIN  : origin = 0x33FFF6, length = 0x000002     /* Used for "boot to Flash" bootloader mode. */
@@ -77,7 +79,8 @@ PAGE 1 :   /* Data Memory */
     RESERVED    : origin = 0x000000, length = 0x000002
     M01SARAM    : origin = 0x000002, length = 0x0007FE     /* on-chip RAM block M0, M1 */
     PIEVECT     : origin = 0xD00,    length = 0x100
-    L17SARAM    : origin = 0x009000, length = 0x007000     /* RAM block L1-L7 */
+    L17SARAM    : origin = 0x009000, length = 0x006FFC     /* RAM block L1-L7 */
+    BOOT_FLAG   : origin = 0x00FFFC, length = 0x000004     /* RAM for storing Boot flag */
 
     DEV_EMU     : origin = 0x000880, length = 0x000180     /* device emulation registers */
     FLASH_REGS  : origin = 0x000A80, length = 0x000060     /* FLASH registers */

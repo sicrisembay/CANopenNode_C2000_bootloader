@@ -3,6 +3,7 @@
 #include "OD.h"
 #include "Flash2833x_API_Config.h"
 #include "Flash2833x_API_Library.h"
+#include "crc_tbl.h"
 
 #if (CO_CONFIG_PROG & CO_CONFIG_PROG_ENABLE)
 
@@ -19,6 +20,10 @@
 #define APP_FLASH_END_ADDRESS       (0x337FFF)
 #define PROGRAM_PAGE_SIZE           (256)  // words
 
+#define APP_ENTRY_ADDRESS           (0x337F7E)  // refer to linker memory definition of APP_BEGIN
+#define APP_CRC_ADDRESS             (0x337F80)  // refer to linker memory definition of APP_CRC
+
+static const MEMRANGE_CRC_TABLE * const pCrcTable = (MEMRANGE_CRC_TABLE *)APP_CRC_ADDRESS;
 static CO_Program_t program;
 
 static uint32_t extendedLinearAddress = 0;
@@ -67,6 +72,64 @@ static void ConvertBufToWord(uint8_t * buf, uint8_t len)
 }
 
 
+bool CheckAppCrc()
+{
+    /* Paranoid test: Record size */
+    if(pCrcTable->rec_size != sizeof(MEMRANGE_CRC_RECORD)) {
+        return false;
+    }
+
+    /* Note: application linker computes a single CRC over several ranges */
+    size_t total_len = 0;
+    for(int i = 0; i < pCrcTable->num_recs; i++) {
+        total_len += pCrcTable->recs[i].size;
+    }
+
+    /* Calculate CRC */
+    extern unsigned long gen_crc(int id, const unsigned char *data, size_t len);
+    uint32_t crcVal = gen_crc((int)(pCrcTable->crc_alg_ID),
+                              (const unsigned char *)(pCrcTable->recs[0].addr),
+                              total_len);
+    if(crcVal != pCrcTable->crc_value) {
+        return false;
+    }
+
+    return true;
+}
+
+
+bool CheckAppAndJump()
+{
+    void (*appEntry)(void);
+
+    if(!CheckAppCrc()) {
+        return false;
+    }
+
+    /* De-init peripheral before jumping to Application */
+    volatile struct ECAN_REGS * ECanRegPtr = (volatile struct ECAN_REGS *)program.CANmodule->CANptr;
+    ECanRegPtr->CANME.all  = 0x00000000;        // disable all mailbox
+    ECanRegPtr->CANMD.all  = 0x00000000;        // Default all mailbox as transmit.
+    ECanRegPtr->CANGIF0.all = 0xFFFFFFFF;       // Clears Line0 Global interrupt flags by writing 1's
+    ECanRegPtr->CANGIF1.all = 0xFFFFFFFF;       // Clears Line1 Global interrupt flags by writing 1's
+    ECanRegPtr->CANTA.all  = 0xFFFFFFFF;        // Clears CANTA by writing 1's
+    ECanRegPtr->CANRMP.all = 0xFFFFFFFF;        // Clears RMP by writing 1's
+    ECanRegPtr->CANMIM.all = 0x00000000;        // disable all mailbox interrupts
+    ECanRegPtr->CANGIM.all = 0x00000000;        // disable all interrupts
+
+    EALLOW;
+    SysCtrlRegs.PCLKCR0.bit.ECANAENCLK = 0;
+    SysCtrlRegs.PCLKCR0.bit.ECANBENCLK = 0;
+    EDIS;
+
+    appEntry = (void (*)(void))APP_ENTRY_ADDRESS;
+    appEntry();
+
+    /* Does not reach here */
+    return true;
+}
+
+
 static ODR_t OD_write_1F50_callback(OD_stream_t * stream,
         const void * buf,
         OD_size_t count,
@@ -90,7 +153,7 @@ static ODR_t OD_write_1F50_callback(OD_stream_t * stream,
         checksum += pBuf8[i];
     }
     if((checksum & 0x00FF) != 0) {
-        return ODR_GENERAL;
+        return ODR_HW;
     }
     /*
      * Parse Intel Hex Record
@@ -112,7 +175,10 @@ static ODR_t OD_write_1F50_callback(OD_stream_t * stream,
                     if(retFlash == STATUS_SUCCESS) {
                         sectorErasedFlag |= sector;
                     } else {
-                        /// TODO: Handle error
+                        /* Failed Flash Erase */
+                        sector = 0;
+                        sectorErasedFlag = 0;
+                        return ODR_HW;
                     }
                 }
                 /*
@@ -122,7 +188,10 @@ static ODR_t OD_write_1F50_callback(OD_stream_t * stream,
                 if(progLen != 0) {
                     retFlash = Flash_Program((uint16_t *)programAddress, progBuffer, progLen, &flashSt);
                     if(retFlash != STATUS_SUCCESS) {
-                        /// TODO
+                        /* Failed Flash Program */
+                        sector = 0;
+                        sectorErasedFlag = 0;
+                        return ODR_HW;
                     }
                 }
             }
@@ -130,9 +199,8 @@ static ODR_t OD_write_1F50_callback(OD_stream_t * stream,
         }
         case INTEL_HEX_TYPE_EOL: {
             /* Clear flags */
+            sector = 0;
             sectorErasedFlag = 0;
-            /* Calculate CRC */
-            /// TODO
             break;
         }
         case INTEL_HEX_TYPE_EXT_ADDR: {
@@ -166,9 +234,9 @@ static ODR_t OD_write_1F51_callback(OD_stream_t * stream,
         case 1: {
             uint32_t val = CO_getUint32(buf);
             if(val == 1) {
-                void (*appEntry)(void);
-                appEntry = (void (*)(void))0x337C00;
-                appEntry();
+                if(!CheckAppAndJump()) {
+                    return ODR_NO_DATA;
+                }
             }
             break;
         }
@@ -177,6 +245,91 @@ static ODR_t OD_write_1F51_callback(OD_stream_t * stream,
         }
     }
 
+    return ODR_OK;
+}
+
+
+static ODR_t OD_write_2000_callback(OD_stream_t * stream,
+        const void * buf,
+        OD_size_t count,
+        OD_size_t * countWritten)
+{
+    /*
+     * Verify arguments
+     */
+    if((stream == NULL) || (stream->subIndex == 0) || (buf == NULL) ||
+       (countWritten == NULL)) {
+        return ODR_DEV_INCOMPAT;
+    }
+
+    switch(stream->subIndex) {
+        case 1: {
+            /* Command */
+            uint16_t command = CO_getUint16(buf);
+            switch(command) {
+                case 0x01: {
+                    /* Calculate CRC */
+                    if(!CheckAppCrc()) {
+                        return ODR_HW;
+                    }
+                    break;
+                }
+                case 0x02: {
+                    /* Jump to application */
+                    if(!CheckAppAndJump()) {
+                        return ODR_HW;
+                    }
+                    break;
+                }
+                case 0x03: {
+                    /* Erase sector */
+                    FLASH_ST flashSt = {0};
+                    uint16_t retFlash = STATUS_SUCCESS;
+                    uint16_t sectorMask;
+                    OD_size_t bytesRd;
+                    OD_IO_t io_bootloaderEraseSectorMask;
+                    if(ODR_OK != OD_getSub(OD_ENTRY_H2000, 0x02, &io_bootloaderEraseSectorMask, true)) {
+                        return ODR_HW;
+                    }
+                    if(ODR_OK != io_bootloaderEraseSectorMask.read(&io_bootloaderEraseSectorMask.stream, &sectorMask, 2, &bytesRd)) {
+                        return ODR_HW;
+                    }
+                    sectorMask &= 0x00FE;
+                    retFlash = Flash_Erase(sectorMask, &flashSt);
+                    if(retFlash == STATUS_SUCCESS) {
+                        sectorErasedFlag |= sectorMask;
+                    } else {
+                        /* Failed Flash Erase */
+                        sector = 0;
+                        sectorErasedFlag = 0;
+                        return ODR_HW;
+                    }
+                    break;
+                }
+                default: {
+                    return ODR_HW;
+                }
+            }
+            break;
+        }
+        case 2: {
+            if(count != 2) {
+                /* Expected uint16_t */
+                return ODR_DEV_INCOMPAT;
+            }
+            uint16_t sectorMask = CO_getUint16(buf);
+            /* Paranoid check: SectorA must not be overwritten */
+            sectorMask &= 0x00FE;
+            /* Set Erase Sector Mask */
+            if(ODR_OK != OD_writeOriginal(stream, &sectorMask, count, countWritten)) {
+                return ODR_HW;
+            }
+            break;
+        }
+        default: {
+            return ODR_DEV_INCOMPAT;
+        }
+    }
     return ODR_OK;
 }
 
@@ -202,8 +355,10 @@ CO_ReturnError_t CO_Prog_F28335_init(CO_CANmodule_t * CANmodule)
     ret = CO_Prog_init(&program,
                        OD_ENTRY_H1F50_downloadProgramData,
                        OD_ENTRY_H1F51_programControl,
+                       OD_ENTRY_H2000_bootloader,
                        OD_write_1F50_callback,
-                       OD_write_1F51_callback);
+                       OD_write_1F51_callback,
+                       OD_write_2000_callback);
 
     return ret;
 }

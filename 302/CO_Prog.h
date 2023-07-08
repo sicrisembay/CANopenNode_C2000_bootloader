@@ -18,6 +18,7 @@
 typedef struct {
     OD_extension_t OD_1F50_extensions;
     OD_extension_t OD_1F51_extensions;
+    OD_extension_t OD_2000_extensions;
     CO_CANmodule_t * CANmodule;
 } CO_Program_t;
 
@@ -35,11 +36,16 @@ typedef struct {
 CO_ReturnError_t CO_Prog_init(CO_Program_t * ProgObj,
                               OD_entry_t * OD_1F50_ProgramDownloadData,
                               OD_entry_t * OD_1F51_ProgramControl,
+                              OD_entry_t * OD_2000_Bootloader,
                               ODR_t OD_write_1F50(OD_stream_t * stream,
                                                   const void * buf,
                                                   OD_size_t count,
                                                   OD_size_t * countWritten),
                               ODR_t OD_write_1F51(OD_stream_t * stream,
+                                                  const void * buf,
+                                                  OD_size_t count,
+                                                  OD_size_t * countWritten),
+                              ODR_t OD_write_2000(OD_stream_t * stream,
                                                   const void * buf,
                                                   OD_size_t count,
                                                   OD_size_t * countWritten));
