@@ -25,7 +25,7 @@
  * limitations under the License.
  */
 
-
+#include "conf.h"
 #include "301/CO_driver.h"
 
 typedef struct {
@@ -35,6 +35,7 @@ typedef struct {
     uint16_t tseg2;
 } BTC_CONFIG_ENTRY_T;
 
+#if CONFIG_CORE_FREQ_150MHZ
 static BTC_CONFIG_ENTRY_T const BTC_CONFIG_TABLE[] = {
     /* 20kbps, sampling at 86.7% */
     {
@@ -79,6 +80,33 @@ static BTC_CONFIG_ENTRY_T const BTC_CONFIG_TABLE[] = {
         .tseg2 = 3
     },
 };
+#elif CONFIG_CORE_FREQ_100MHZ
+static BTC_CONFIG_ENTRY_T const BTC_CONFIG_TABLE[] = {
+    /* 250kbps */
+    {
+        .bit_rate_kbps = 250,
+        .brp = 19,
+        .tseg1 = 6,
+        .tseg2 = 1
+    },
+    /* 500kbps */
+    {
+        .bit_rate_kbps = 500,
+        .brp = 9,
+        .tseg1 = 6,
+        .tseg2 = 1
+    },
+    /* 1000kbps */
+    {
+        .bit_rate_kbps = 1000,
+        .brp = 4,
+        .tseg1 = 6,
+        .tseg2 = 1
+    },
+};
+#else
+#error "Invalid Core Clock configuration"
+#endif
 
 #define N_BTC_CONFIG_ENTRY      (sizeof(BTC_CONFIG_TABLE) / sizeof(BTC_CONFIG_TABLE[0]))
 #define CAN_MAILBOX_TX          (31)

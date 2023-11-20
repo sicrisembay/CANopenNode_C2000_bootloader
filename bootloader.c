@@ -134,6 +134,21 @@ static void InitFlashWaitState(void)
     // Set the Waitstate for the OTP
     //
     FlashRegs.FOTPWAIT.bit.OTPWAIT = 8;
+#elif CONFIG_CORE_FREQ_100MHZ
+    //
+    // Set the Paged Waitstate for the Flash
+    //
+    FlashRegs.FBANKWAIT.bit.PAGEWAIT = 5;
+
+    //
+    // Set the Random Waitstate for the Flash
+    //
+    FlashRegs.FBANKWAIT.bit.RANDWAIT = 5;
+
+    //
+    // Set the Waitstate for the OTP
+    //
+    FlashRegs.FOTPWAIT.bit.OTPWAIT = 8;
 #else
 #error "Other clock not supported for now"
 #endif
@@ -187,6 +202,12 @@ int main()
     configure_core_pll(0xA);
   #elif CONFIG_CRYSTAL_20MHZ
     configure_core_pll(0xF);
+  #else
+    #error "Unsupported Crytal Frequency"
+  #endif
+#elif CONFIG_CORE_FREQ_100MHZ
+  #if CONFIG_CRYSTAL_20MHZ
+    configure_core_pll(0xA);
   #else
     #error "Unsupported Crytal Frequency"
   #endif
@@ -344,6 +365,8 @@ int main()
         CpuTimer0Regs.TCR.bit.TIE = 0;
 #if CONFIG_CORE_FREQ_150MHZ
         CpuTimer0Regs.PRD.all = 150000;
+#elif CONFIG_CORE_FREQ_100MHZ
+        CpuTimer0Regs.PRD.all = 100000;
 #else
   #error "Unsupported Core Clock Frequency"
 #endif
