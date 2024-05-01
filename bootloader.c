@@ -288,12 +288,21 @@ int main()
     CANptr = (void *)(&ECanbRegs);
     EALLOW;
     /* Configure IO */
+#if CONFIG_CAN_B_TX_GPIO16
     GpioCtrlRegs.GPAPUD.bit.GPIO16 = 0;      // Enable pull-up for GPIO16(CANTXB)
     GpioCtrlRegs.GPAMUX2.bit.GPIO16 = 2;     // Configure GPIO16 for CANTXB
+#else
+#error "Invalid CAN-B Tx GPIO"
+#endif
+
+#if CONFIG_CAN_B_RX_GPIO17
     GpioCtrlRegs.GPAPUD.bit.GPIO17 = 0;     // Enable pull-up for GPIO17(CANRXB)
     GpioCtrlRegs.GPAQSEL2.bit.GPIO17 = 3;   // Asynch qual for GPIO17 (CANRXB)
     GpioCtrlRegs.GPAMUX2.bit.GPIO17 = 2;    // Configure GPIO17 for CANRXB
-    /* Enable CAN-A clock */
+#else
+#error "Invalid CAN-B Rx GPIO"
+#endif
+    /* Enable CAN-B clock */
     SysCtrlRegs.PCLKCR0.bit.ECANBENCLK = 1;
 
     shadow_cantioc.all = ECanbRegs.CANTIOC.all;
@@ -332,7 +341,7 @@ int main()
                              NULL,              /* alternate em */
                              OD,                /* Object dictionary */
                              OD_STATUS_BITS,    /* Optional OD_statusBits */
-                             NMT_CONTROL,       /* CO_NMT_control_t */
+                             (CO_NMT_control_t)NMT_CONTROL,       /* CO_NMT_control_t */
                              FIRST_HB_TIME,     /* firstHBTime_ms */
                              SDO_SRV_TIMEOUT_TIME, /* SDOserverTimeoutTime_ms */
                              SDO_CLI_TIMEOUT_TIME, /* SDOclientTimeoutTime_ms */

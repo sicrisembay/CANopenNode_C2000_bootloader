@@ -11,7 +11,25 @@
 
 /* CAN */
 #define CONFIG_USE_CAN_A            1
+#define CONFIG_USE_CAN_B            0
+#if ((CONFIG_USE_CAN_A + CONFIG_USE_CAN_B) != 1)
+#error "Only support one active CAN"
+#endif
+
+#if (CONFIG_USE_CAN_A)
 #define CONFIG_CAN_A_TX_GPIO31      1
+#define CONFIG_CAN_A_TX_GPIO19      0
 #define CONFIG_CAN_A_RX_GPIO30      1
-//#define CONFIG_CAN_A_TX_GPIO19      1
-//#define CONFIG_CAN_A_RX_GPIO18      1
+#define CONFIG_CAN_A_RX_GPIO18      0
+#if ((CONFIG_CAN_A_TX_GPIO31 + CONFIG_CAN_A_TX_GPIO19) != 1)
+#error "Invalid CANA-TX"
+#endif
+#if ((CONFIG_CAN_A_RX_GPIO30 + CONFIG_CAN_A_RX_GPIO18) != 1)
+#error "Invalid CANA-RX"
+#endif
+#elif (CONFIG_USE_CAN_B)
+#define CONFIG_CAN_B_TX_GPIO16      1
+#define CONFIG_CAN_B_RX_GPIO17      1
+#else
+#error "Invalid CAN Peripheral"
+#endif
