@@ -25,7 +25,7 @@
  * limitations under the License.
  */
 
-#include "conf.h"
+#include "autoconf.h"
 #include "301/CO_driver.h"
 
 typedef struct {
@@ -704,7 +704,6 @@ void CO_CANmodule_process(CO_CANmodule_t *CANmodule) {
 void CO_CANpacket_process(CO_CANmodule_t *CANmodule) {
     volatile struct ECAN_REGS * ECanRegPtr;
     volatile struct MBOX * MBoxPtr;
-    union CANGIF0_REG shadow_cangif0;
     union CANTA_REG shadow_canta;
     union CANTRS_REG shadow_cantrs;
     union CANRMP_REG shadow_canrmp;

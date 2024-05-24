@@ -1,12 +1,14 @@
 /*
  * \file bootloader.c
  */
-#include "conf.h"
+#include "autoconf.h"
 #include "DSP2833x_Device.h"
 #include "CANopen.h"
 #include "OD.h"
 #include "302/CO_Prog_F28335.h"
 
+#define BOOT_FLAG_VAL               *(volatile unsigned long *)CONFIG_BOOT_FLAG_ADDRESS
+#define CONFIG_TIMER_EXPIRY_MS      (500)
 
 #define NMT_CONTROL   CO_NMT_STARTUP_TO_OPERATIONAL   \
                       | CO_NMT_ERR_ON_ERR_REG         \
@@ -174,7 +176,7 @@ int main()
     CO_ReturnError_t err;
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
     uint32_t heapMemoryUsed;
-    uint8_t pendingNodeId = 10; /* read from dip switches or nonvolatile memory, configurable by LSS slave */
+    uint8_t pendingNodeId = CONFIG_NODE_ID; /* read from dip switches or nonvolatile memory, configurable by LSS slave */
     uint8_t activeNodeId = 10; /* Copied from CO_pendingNodeId in the communication reset section */
     uint16_t pendingBitRate = 1000;  /* read from dip switches or nonvolatile memory, configurable by LSS slave */
     union CANTIOC_REG shadow_cantioc;
@@ -228,7 +230,7 @@ int main()
         BOOT_FLAG_VAL = 0UL;
         bootMode = MODE_RUN_BOOT;
     } else {
-        if(BOOT_FLAG_VAL == APPLICATION_RUN_VAL) {
+        if(BOOT_FLAG_VAL == CONFIG_APPLICATION_RUN_VAL) {
             /* Run application */
             BOOT_FLAG_VAL = 0UL;
             CheckAppAndJump();
@@ -238,11 +240,11 @@ int main()
              */
             BOOT_FLAG_VAL = 0UL;
             bootMode = MODE_RUN_BOOT;
-        } else if(BOOT_FLAG_VAL == BOOTLOADER_RUN_VAL) {
+        } else if(BOOT_FLAG_VAL == CONFIG_BOOTLOADER_RUN_VAL) {
             /* Run bootloader */
             BOOT_FLAG_VAL = 0UL;
             bootMode = MODE_RUN_BOOT;
-        } else if(BOOT_FLAG_VAL == BOOTLOADER_JUMP_VAL) {
+        } else if(BOOT_FLAG_VAL == CONFIG_BOOTLOADER_JUMP_VAL) {
             /* Bootloader called directly from Application */
             BOOT_FLAG_VAL = 0UL;
             bootMode = MODE_RUN_BOOT;
@@ -257,22 +259,22 @@ int main()
     CANptr = (void *)(&ECanaRegs);
     EALLOW;
     /* Configure IO */
-#if CONFIG_CAN_A_TX_GPIO31
+#if CONFIG_CAN_TX_GPIO31
     GpioCtrlRegs.GPAPUD.bit.GPIO31 = 0;     //Enable pull-up for GPIO31 (CANTXA)
     GpioCtrlRegs.GPAMUX2.bit.GPIO31 = 1;    // Configure GPIO31 for CANTXA
-#elif CONFIG_CAN_A_TX_GPIO19
+#elif CONFIG_CAN_TX_GPIO19
     GpioCtrlRegs.GPAPUD.bit.GPIO19 = 0;     // Enable pull-up for CANTXA
     GpioCtrlRegs.GPAMUX2.bit.GPIO19 = 3;    // Configure GPIO19 for CANTXA
-#endif /* CONFIG_CAN_A_TX_GPIOXX */
-#if CONFIG_CAN_A_RX_GPIO30
+#endif /* CONFIG_CAN_TX_GPIOXX */
+#if CONFIG_CAN_RX_GPIO30
     GpioCtrlRegs.GPAPUD.bit.GPIO30 = 0;     // Enable pull-up for GPIO30 (CANRXA)
     GpioCtrlRegs.GPAQSEL2.bit.GPIO30 = 3;   // Asynch qual for GPIO30 (CANRXA)
     GpioCtrlRegs.GPAMUX2.bit.GPIO30 = 1;    // Configure GPIO30 for CANRXA
-#elif CONFIG_CAN_A_RX_GPIO18
+#elif CONFIG_CAN_RX_GPIO18
     GpioCtrlRegs.GPAPUD.bit.GPIO18 = 0;     // Enable pull-up for CANRXA
     GpioCtrlRegs.GPAQSEL2.bit.GPIO18 = 3;   // Asynch qual for CANRXA
     GpioCtrlRegs.GPAMUX2.bit.GPIO18 = 3;    // Configure GPIO18 for CANRXA
-#endif /* CONFIG_CAN_A_RX_GPIOXX */
+#endif /* CONFIG_CAN_RX_GPIOXX */
     /* Enable CAN-A clock */
     SysCtrlRegs.PCLKCR0.bit.ECANAENCLK = 1;
 
@@ -288,7 +290,7 @@ int main()
     CANptr = (void *)(&ECanbRegs);
     EALLOW;
     /* Configure IO */
-#if CONFIG_CAN_B_TX_GPIO16
+#if CONFIG_CAN_TX_GPIO16
     GpioCtrlRegs.GPAPUD.bit.GPIO16 = 0;      // Enable pull-up for GPIO16(CANTXB)
     GpioCtrlRegs.GPAMUX2.bit.GPIO16 = 2;     // Configure GPIO16 for CANTXB
 #else
@@ -401,7 +403,7 @@ int main()
                     } else {
                         timerCounter++;
                         if(timerCounter >= CONFIG_TIMER_EXPIRY_MS) {
-                            BOOT_FLAG_VAL = APPLICATION_RUN_VAL;
+                            BOOT_FLAG_VAL = CONFIG_APPLICATION_RUN_VAL;
                             Device_reset();
                         }
                     }

@@ -1,0 +1,81 @@
+mainmenu "CANopen Bootloader Configuration"
+
+config BOOTLOADER_RUN_VAL
+    hex
+    default 0x364C71F3
+
+config BOOTLOADER_JUMP_VAL
+    hex
+    default 0xD489B4BB
+
+config APPLICATION_RUN_VAL
+    hex
+    default 0x248B2ADC
+
+config BOOT_FLAG_ADDRESS
+    hex
+    default 0x00FFFC
+    help
+        Refer to linker memory definition of BOOT_FLAG
+
+choice
+    prompt "Core Oscillator"
+    default CRYSTAL_30MHZ
+    config CRYSTAL_20MHZ
+        bool "20MHz"
+    config CRYSTAL_30MHZ
+        bool "30MHz"
+endchoice
+
+choice
+    prompt "Core Frequency"
+    default CORE_FREQ_150MHZ
+    config CORE_FREQ_150MHZ
+        bool "150MHz"
+    config CORE_FREQ_100MHZ
+        depends on !CRYSTAL_30MHZ
+        bool "100MHz"
+endchoice
+
+menu "CAN Configuration"
+    choice
+        prompt "CAN Peripheral"
+        default USE_CAN_A
+        config USE_CAN_A
+            bool "CAN-A"
+        config USE_CAN_B
+            bool "CAN-B"
+    endchoice
+
+    choice
+        prompt "CAN-TX IO"
+        config CAN_TX_GPIO19
+            depends on USE_CAN_A
+            bool "GPIO19"
+        config CAN_TX_GPIO31
+            depends on USE_CAN_A
+            bool "GPIO31"
+        config CAN_TX_GPIO16
+            depends on USE_CAN_B
+            bool "GPIO16"
+    endchoice
+
+    choice
+        prompt "CAN-RX IO"
+        config CAN_RX_GPIO18
+            depends on USE_CAN_A
+            bool "GPIO18"
+        config CAN_RX_GPIO30
+            depends on USE_CAN_A
+            bool "GPIO30"
+        config CAN_RX_GPIO17
+            depends on USE_CAN_B
+            bool "GPIO17"
+    endchoice
+
+endmenu #"CAN Configuration"
+
+config NODE_ID
+    hex "Node ID"
+    range 0x01 0x7F
+    default 0x01
