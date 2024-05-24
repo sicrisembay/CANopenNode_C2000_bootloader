@@ -1,5 +1,13 @@
 mainmenu "CANopen Bootloader Configuration"
 
+config C2000_UID_LSW_ADDR
+    hex
+    default 0x000900
+
+config C2000_UID_MSW_ADDR
+    hex
+    default 0x000901
+
 config BOOTLOADER_RUN_VAL
     hex
     default 0x364C71F3
@@ -79,3 +87,7 @@ config NODE_ID
     hex "Node ID"
     range 0x01 0x7F
     default 0x01
+
+config BITRATE
+    int "CAN Bit Rate"
+    default 1000

@@ -10,10 +10,10 @@
 #define BOOT_FLAG_VAL               *(volatile unsigned long *)CONFIG_BOOT_FLAG_ADDRESS
 #define CONFIG_TIMER_EXPIRY_MS      (500)
 
-#define NMT_CONTROL   CO_NMT_STARTUP_TO_OPERATIONAL   \
+#define NMT_CONTROL   (CO_NMT_control_t)(CO_NMT_STARTUP_TO_OPERATIONAL   \
                       | CO_NMT_ERR_ON_ERR_REG         \
                       | CO_ERR_REG_GENERIC_ERR        \
-                      | CO_ERR_REG_COMMUNICATION
+                      | CO_ERR_REG_COMMUNICATION)
 
 #define FIRST_HB_TIME 500
 #define SDO_SRV_TIMEOUT_TIME 1000
@@ -27,6 +27,11 @@ typedef enum {
     N_MODE
 } mode_t;
 
+typedef struct {
+    uint16_t pendingBitRate;
+    uint8_t pendingNodeId;
+} mainStorage_t;
+
 extern unsigned int RamfuncsLoadStart;
 extern unsigned int RamfuncsLoadEnd;
 extern unsigned int RamfuncsRunStart;
@@ -35,6 +40,12 @@ static CO_t * CO = NULL;
 static void * CANptr = NULL; /* CAN module address */
 static mode_t bootMode = N_MODE;
 static uint16_t timerCounter = 0;
+
+static mainStorage_t mainStorage = {
+    .pendingBitRate = CONFIG_BITRATE,
+    .pendingNodeId = CONFIG_NODE_ID,
+};
+
 
 #pragma CODE_SECTION(Device_reset, "ramfuncs");
 void Device_reset(void)
@@ -177,8 +188,7 @@ int main()
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
     uint32_t heapMemoryUsed;
     uint8_t pendingNodeId = CONFIG_NODE_ID; /* read from dip switches or nonvolatile memory, configurable by LSS slave */
-    uint8_t activeNodeId = 10; /* Copied from CO_pendingNodeId in the communication reset section */
-    uint16_t pendingBitRate = 1000;  /* read from dip switches or nonvolatile memory, configurable by LSS slave */
+    uint8_t activeNodeId = mainStorage.pendingNodeId; /* Copied from CO_pendingNodeId in the communication reset section */
     union CANTIOC_REG shadow_cantioc;
     union CANRIOC_REG shadow_canrioc;
 
@@ -330,12 +340,34 @@ int main()
         CO->CANmodule->CANnormal = false;
         CO_CANsetConfigurationMode(CANptr);
         /* Initialize CAN */
-        err = CO_CANinit(CO, CANptr, pendingBitRate);
+        err = CO_CANinit(CO, CANptr, mainStorage.pendingBitRate);
         if(err != CO_ERROR_NO) {
             while(1);
         }
 
-        activeNodeId = pendingNodeId;
+        /*
+         * Use C2000 Unique Device Number
+         * Refer to SPRACD0B
+         */
+        uint16_t uid_lsw = *(((uint16_t *)CONFIG_C2000_UID_LSW_ADDR));
+        uint32_t uid_msw = *(((uint16_t *)CONFIG_C2000_UID_MSW_ADDR));
+        OD_PERSIST_COMM.x1018_identity.serialNumber = (uid_msw << 16) | uid_lsw;
+
+        CO_LSS_address_t lssAddress = {
+            .identity = {
+                 .vendorID = OD_PERSIST_COMM.x1018_identity.vendor_ID,
+                 .productCode = OD_PERSIST_COMM.x1018_identity.productCode,
+                 .revisionNumber = OD_PERSIST_COMM.x1018_identity.revisionNumber,
+                 .serialNumber = OD_PERSIST_COMM.x1018_identity.serialNumber
+            }
+        };
+
+        err = CO_LSSinit(CO, &lssAddress, &(mainStorage.pendingNodeId), &(mainStorage.pendingBitRate));
+        if(err != CO_ERROR_NO) {
+            while(1);
+        }
+
+        activeNodeId = mainStorage.pendingNodeId;
         uint32_t errInfo = 0;
 
         err = CO_CANopenInit(CO,                /* CANopen object */
@@ -343,13 +375,14 @@ int main()
                              NULL,              /* alternate em */
                              OD,                /* Object dictionary */
                              OD_STATUS_BITS,    /* Optional OD_statusBits */
-                             (CO_NMT_control_t)NMT_CONTROL,       /* CO_NMT_control_t */
+                             NMT_CONTROL,       /* CO_NMT_control_t */
                              FIRST_HB_TIME,     /* firstHBTime_ms */
                              SDO_SRV_TIMEOUT_TIME, /* SDOserverTimeoutTime_ms */
                              SDO_CLI_TIMEOUT_TIME, /* SDOclientTimeoutTime_ms */
                              SDO_CLI_BLOCK,     /* SDOclientBlockTransfer */
                              activeNodeId,
                              &errInfo);
+
         if(err != CO_ERROR_NO) {
             while(1);
         }

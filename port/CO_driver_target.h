@@ -139,7 +139,7 @@ typedef struct {
 #define CO_CONFIG_HB_CONS   0
 
 /* Disable LSS */
-#define CO_CONFIG_LSS       0
+#define CO_CONFIG_LSS       (CO_CONFIG_LSS_SLAVE | CO_CONFIG_GLOBAL_FLAG_CALLBACK_PRE)
 
 /* Disable PDO */
 #define CO_CONFIG_PDO       0
