@@ -4,8 +4,10 @@
 #include "autoconf.h"
 #include "DSP2833x_Device.h"
 #include "CANopen.h"
+#include "301/crc16-ccitt.h"
 #include "OD.h"
 #include "302/CO_Prog_F28335.h"
+#include "eeprom.h"
 
 #define BOOT_FLAG_VAL               *(volatile unsigned long *)CONFIG_BOOT_FLAG_ADDRESS
 #define CONFIG_TIMER_EXPIRY_MS      (500)
@@ -27,10 +29,25 @@ typedef enum {
     N_MODE
 } mode_t;
 
+/* Data block for main data, which can be stored to EEPROM, if available */
 typedef struct {
-    uint16_t pendingBitRate;
-    uint8_t pendingNodeId;
+    uint16_t pendingBitRate;    // Pending CAN bit rate, can be set via LSS
+    uint16_t pendingNodeId;     // Pending CANopen NodeId, can be set via LSS slave
 } mainStorage_t;
+
+typedef union {
+    uint32_t all;
+    struct {
+        uint32_t len:16;
+        uint32_t crc:16;
+    } word;
+    struct {
+        uint32_t b0:8;
+        uint32_t b1:8;
+        uint32_t b2:8;
+        uint32_t b3:8;
+    } byte;
+} SIGNATURE_T;
 
 extern unsigned int RamfuncsLoadStart;
 extern unsigned int RamfuncsLoadEnd;
@@ -46,6 +63,7 @@ static mainStorage_t mainStorage = {
     .pendingNodeId = CONFIG_NODE_ID,
 };
 
+static SIGNATURE_T signature;
 
 #pragma CODE_SECTION(Device_reset, "ramfuncs");
 void Device_reset(void)
@@ -182,12 +200,37 @@ static void InitFlashWaitState(void)
 }
 
 
+static bool_t LSScfgStoreCallback(void *object, uint8_t id, uint16_t bitRate) {
+    uint8_t tmpBuf[4];
+    SIGNATURE_T tmpSignature;
+    mainStorage_t * storage = object;
+    storage->pendingNodeId = id;
+    storage->pendingBitRate = bitRate;
+
+    // Write LSS data block (node ID and bit rate) to EEPROM
+    tmpBuf[0] = bitRate & 0xFF;
+    tmpBuf[1] = (bitRate >> 8) & 0xFF;
+    tmpBuf[2] = id & 0xFF;
+    tmpBuf[3] = 0;
+    EEPROM_write(CONFIG_LSS_DATA_BLOCK_ADDR, tmpBuf, 4);
+    // Calculate Signature
+    tmpSignature.word.crc = (uint16_t)crc16_ccitt((uint8_t *)storage, 2, 0);;
+    tmpSignature.word.len = 4;
+    tmpBuf[0] = tmpSignature.byte.b0;
+    tmpBuf[1] = tmpSignature.byte.b1;
+    tmpBuf[2] = tmpSignature.byte.b2;
+    tmpBuf[3] = tmpSignature.byte.b3;
+    EEPROM_write(CONFIG_LSS_ENTRY_SIGNATURE_ADDR, tmpBuf, 4);
+
+    return true;
+}
+
+
 int main()
 {
     CO_ReturnError_t err;
     CO_NMT_reset_cmd_t reset = CO_RESET_NOT;
     uint32_t heapMemoryUsed;
-    uint8_t pendingNodeId = CONFIG_NODE_ID; /* read from dip switches or nonvolatile memory, configurable by LSS slave */
     uint8_t activeNodeId = mainStorage.pendingNodeId; /* Copied from CO_pendingNodeId in the communication reset section */
     union CANTIOC_REG shadow_cantioc;
     union CANRIOC_REG shadow_canrioc;
@@ -335,6 +378,36 @@ int main()
         while(1);
     }
 
+#if (CONFIG_HAS_EEPROM)
+    uint8_t tmpBuf[4];
+    uint16_t dataCrc;
+    uint16_t tmpVal;
+    EEPROM_init();
+    // Read Signature
+    EEPROM_read(CONFIG_LSS_ENTRY_SIGNATURE_ADDR, tmpBuf, 4);
+    signature.all = ((uint32_t)tmpBuf[0]) +
+            (((uint32_t)tmpBuf[1]) << 8) +
+            (((uint32_t)tmpBuf[2]) << 16) +
+            (((uint32_t)tmpBuf[3]) << 24);
+    // Read main storage
+    EEPROM_read(CONFIG_LSS_DATA_BLOCK_ADDR, tmpBuf, 4);
+    dataCrc = 0;
+    tmpVal = ((uint16_t)(tmpBuf[0])) +
+            (((uint16_t)tmpBuf[1]) << 8);
+    dataCrc = crc16_ccitt((uint8_t *)&tmpVal, 1, dataCrc);
+    tmpVal = ((uint16_t)(tmpBuf[2])) +
+            (((uint16_t)tmpBuf[3]) << 8);
+    dataCrc = crc16_ccitt((uint8_t *)&tmpVal, 1, dataCrc);
+    if((dataCrc == signature.word.crc) &&
+       (4 == signature.word.len)){
+        /* Valid Signature */
+        mainStorage.pendingBitRate = ((uint16_t)(tmpBuf[0])) +
+                                    (((uint16_t)tmpBuf[1]) << 8);
+        mainStorage.pendingNodeId = ((uint16_t)(tmpBuf[2])) +
+                                    (((uint16_t)tmpBuf[3]) << 8);
+    }
+#endif
+
     while(reset != CO_RESET_APP) {
         /* CANopen communication reset - initialize CANopen objects *******************/
         CO->CANmodule->CANnormal = false;
@@ -345,6 +418,7 @@ int main()
             while(1);
         }
 
+#if (CO_CONFIG_LSS & CO_CONFIG_LSS_SLAVE)
         /*
          * Use C2000 Unique Device Number
          * Refer to SPRACD0B
@@ -366,6 +440,7 @@ int main()
         if(err != CO_ERROR_NO) {
             while(1);
         }
+#endif /* CO_CONFIG_LSS & CO_CONFIG_LSS_SLAVE */
 
         activeNodeId = mainStorage.pendingNodeId;
         uint32_t errInfo = 0;
@@ -386,6 +461,10 @@ int main()
         if(err != CO_ERROR_NO) {
             while(1);
         }
+
+#if (CO_CONFIG_LSS & CO_CONFIG_LSS_SLAVE)
+        CO_LSSslave_initCfgStoreCallback(CO->LSSslave, &mainStorage, LSScfgStoreCallback);
+#endif
 
 #if (CO_CONFIG_PDO & (CO_CONFIG_RPDO_ENABLE | CO_CONFIG_TPDO_ENABLE))
         err = CO_CANopenInitPDO(CO, CO->em, OD, activeNodeId, &errInfo);

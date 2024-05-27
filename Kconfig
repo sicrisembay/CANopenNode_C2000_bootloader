@@ -88,6 +88,71 @@ config NODE_ID
     range 0x01 0x7F
     default 0x01
 
+choice
+    prompt "Baud rate"
+    default BITRATE_1000KBPS
+    config BITRATE_1000KBPS
+        bool "1000 kbps"
+    config BITRATE_800KBPS
+        bool "800 kbps"
+    config BITRATE_500KBPS
+        bool "500 kbps"
+    config BITRATE_250KBPS
+        bool "250 kbps"
+    config BITRATE_125KBPS
+        bool "125 kbps"
+    config BITRATE_50KBPS
+        bool "50 kbps"
+    config BITRATE_20KBPS
+        bool "20 kbps"
+    config BITRATE_10KBPS
+        bool "10 kbps"
+endchoice
+
 config BITRATE
-    int "CAN Bit Rate"
-    default 1000
+    int
+    default 1000 if BITRATE_1000KBPS
+    default 800 if BITRATE_800KBPS
+    default 500 if BITRATE_500KBPS
+    default 250 if BITRATE_250KBPS
+    default 125 if BITRATE_125KBPS
+    default 50 if BITRATE_50KBPS
+    default 20 if BITRATE_20KBPS
+    default 10 if BITRATE_10KBPS
+
+menuconfig HAS_EEPROM
+    bool "EEPROM"
+    default n
+    if HAS_EEPROM
+        choice
+            prompt "EEPROM Size"
+            config EEPROM_SIZE_32KB
+                bool "32kB"
+        endchoice
+        config EEPROM_SIZE
+            int
+            default 32768 if EEPROM_SIZE_32KB
+        choice
+            prompt "Page Size"
+            config EEPROM_PAGE_SIZE_64
+                bool "64"
+        endchoice
+        config EEPROM_PAGE_SIZE
+            int
+            default 64 if EEPROM_PAGE_SIZE_64
+
+        config EEPROM_DEV_ADDR
+            hex "EEPROM I2C Address"
+            default 0x50
+        config I2C_FIFO_BUFFER_SIZE
+            int
+            default 16
+            help
+                This is the I2C FIFO buffer size
+        config LSS_ENTRY_SIGNATURE_ADDR
+            hex "LSS Entry Signature Address"
+            default 0x0000
+        config LSS_DATA_BLOCK_ADDR
+            hex "LSS Data Block Address"
+            default 0x0040
+    endif

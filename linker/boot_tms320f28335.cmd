@@ -207,6 +207,13 @@ SECTIONS
 
     FPUmathTables       : > FPUTABLES, PAGE = 0, TYPE = NOLOAD
 
+    /* .reset is a standard section used by the compiler.  It contains the */
+    /* the address of the start of _c_int00 for C Code.   /*
+    /* When using the boot ROM this section and the CPU vector */
+    /* table is not needed.  Thus the default type is set here to  */
+    /* DSECT  */
+    .reset           : > RESET,       PAGE = 0, TYPE = DSECT
+
     /* Allocate ADC_cal function (pre-programmed by factory into TI reserved memory) */
     .adc_cal            : load = ADC_CAL,   PAGE = 0, TYPE = NOLOAD
 

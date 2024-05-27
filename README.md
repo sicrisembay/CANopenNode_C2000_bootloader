@@ -10,7 +10,7 @@ This is a CANopen bootloader for C2000 microcontroller using CANopenNode.
 ## Feature
 - Does not use interrupts
 - Entirely polled communication
-- Executed after device reset or power-up.  Execution is independed on loaded application.
+- Executed after device reset or power-up.  Execution is independent on loaded application.
 - Minimal hardware initialization.
 - Flash programming and verification.
 - Overwrite protection of bootloader code area (Flash Sector A).
@@ -18,6 +18,8 @@ This is a CANopen bootloader for C2000 microcontroller using CANopenNode.
     - CRC32_PRIME
     - CRC16_802_15_4
 - Backdoor access with waiting window (default is 500ms)
+- LSS slave supported.
+- LSS slave node Id and bitrate is stored into EEPROM, if available.
 
 ## Execution Flow
 ```mermaid
