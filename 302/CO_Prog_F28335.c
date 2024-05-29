@@ -122,6 +122,12 @@ bool CheckAppAndJump()
     SysCtrlRegs.PCLKCR0.bit.ECANBENCLK = 0;
     EDIS;
 
+    I2caRegs.I2CMDR.bit.IRS = 0;        // Disable I2C peripheral
+    I2caRegs.I2CFFTX.bit.I2CFFEN = 0;   // Disable FIFO
+    EALLOW;
+    SysCtrlRegs.PCLKCR0.bit.I2CAENCLK = 0;
+    EDIS;
+
     appEntry = (void (*)(void))APP_ENTRY_ADDRESS;
     appEntry();
 

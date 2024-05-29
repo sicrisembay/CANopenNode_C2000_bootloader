@@ -60,7 +60,11 @@ static uint16_t timerCounter = 0;
 
 static mainStorage_t mainStorage = {
     .pendingBitRate = CONFIG_BITRATE,
+#if (CONFIG_NODE_ID > 0x7F)
+    .pendingNodeId = CO_LSS_NODE_ID_ASSIGNMENT,
+#else
     .pendingNodeId = CONFIG_NODE_ID,
+#endif
 };
 
 static SIGNATURE_T signature;
@@ -458,7 +462,11 @@ int main()
                              activeNodeId,
                              &errInfo);
 
-        if(err != CO_ERROR_NO) {
+        if((err != CO_ERROR_NO)
+#if (CO_CONFIG_LSS & CO_CONFIG_LSS_SLAVE)
+                && (err != CO_ERROR_NODE_ID_UNCONFIGURED_LSS))
+#endif
+        {
             while(1);
         }
 
@@ -521,16 +529,8 @@ int main()
                     }
                 }
 
-                if(!CO->nodeIdUnconfigured && CO->CANmodule->CANnormal) {
-                    uint32_t timeDifference_us = 1000;
-#if (CO_CONFIG_PDO) & CO_CONFIG_RPDO_ENABLE
-                    CO_process_RPDO(CO, syncWas, timeDifference_us, NULL);
-#endif
-#if (CO_CONFIG_PDO) & CO_CONFIG_TPDO_ENABLE
-                    CO_process_TPDO(CO, syncWas, timeDifference_us, NULL);
-#endif
-                    reset = CO_process(CO, false, timeDifference_us, NULL);
-                }
+                uint32_t timeDifference_us = 1000;
+                reset = CO_process(CO, false, timeDifference_us, NULL);
             }
         }
     }

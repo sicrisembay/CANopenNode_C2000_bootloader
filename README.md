@@ -20,6 +20,7 @@ This is a CANopen bootloader for C2000 microcontroller using CANopenNode.
 - Backdoor access with waiting window (default is 500ms)
 - LSS slave supported.
 - LSS slave node Id and bitrate is stored into EEPROM, if available.
+- see bootload device [Object Dictionary](c2000_bootloader.md)
 
 ## Execution Flow
 ```mermaid

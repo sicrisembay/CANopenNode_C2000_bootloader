@@ -85,8 +85,8 @@ endmenu #"CAN Configuration"
 
 config NODE_ID
     hex "Node ID"
-    range 0x01 0x7F
-    default 0x01
+    range 0x01 0xFF
+    default 0xFF
 
 choice
     prompt "Baud rate"
