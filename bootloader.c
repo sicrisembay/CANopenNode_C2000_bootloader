@@ -217,14 +217,26 @@ static bool_t LSScfgStoreCallback(void *object, uint8_t id, uint16_t bitRate) {
     tmpBuf[2] = id & 0xFF;
     tmpBuf[3] = 0;
     EEPROM_write(CONFIG_LSS_DATA_BLOCK_ADDR, tmpBuf, 4);
+    // Add 20ms delay for EEPROM write cycle time
+    for(uint16_t i = 0; i < 20; i++) {
+        while(CpuTimer0Regs.TCR.bit.TIF == 0);
+        /* Clear flag */
+        CpuTimer0Regs.TCR.bit.TIF = 1;
+    }
     // Calculate Signature
-    tmpSignature.word.crc = (uint16_t)crc16_ccitt((uint8_t *)storage, 2, 0);;
+    tmpSignature.word.crc = (uint16_t)crc16_ccitt(tmpBuf, 4, 0);;
     tmpSignature.word.len = 4;
     tmpBuf[0] = tmpSignature.byte.b0;
     tmpBuf[1] = tmpSignature.byte.b1;
     tmpBuf[2] = tmpSignature.byte.b2;
     tmpBuf[3] = tmpSignature.byte.b3;
     EEPROM_write(CONFIG_LSS_ENTRY_SIGNATURE_ADDR, tmpBuf, 4);
+    // Add 20ms delay for EEPROM write cycle time
+    for(uint16_t i = 0; i < 20; i++) {
+        while(CpuTimer0Regs.TCR.bit.TIF == 0);
+        /* Clear flag */
+        CpuTimer0Regs.TCR.bit.TIF = 1;
+    }
 
     return true;
 }
@@ -385,7 +397,6 @@ int main()
 #if (CONFIG_HAS_EEPROM)
     uint8_t tmpBuf[4];
     uint16_t dataCrc;
-    uint16_t tmpVal;
     EEPROM_init();
     // Read Signature
     EEPROM_read(CONFIG_LSS_ENTRY_SIGNATURE_ADDR, tmpBuf, 4);
@@ -396,12 +407,7 @@ int main()
     // Read main storage
     EEPROM_read(CONFIG_LSS_DATA_BLOCK_ADDR, tmpBuf, 4);
     dataCrc = 0;
-    tmpVal = ((uint16_t)(tmpBuf[0])) +
-            (((uint16_t)tmpBuf[1]) << 8);
-    dataCrc = crc16_ccitt((uint8_t *)&tmpVal, 1, dataCrc);
-    tmpVal = ((uint16_t)(tmpBuf[2])) +
-            (((uint16_t)tmpBuf[3]) << 8);
-    dataCrc = crc16_ccitt((uint8_t *)&tmpVal, 1, dataCrc);
+    dataCrc = crc16_ccitt(tmpBuf, 4, dataCrc);
     if((dataCrc == signature.word.crc) &&
        (4 == signature.word.len)){
         /* Valid Signature */
