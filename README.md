@@ -19,8 +19,8 @@ This is a CANopen bootloader for C2000 microcontroller using CANopenNode.
     - CRC16_802_15_4
 - Backdoor access with waiting window (default is 500ms)
 - LSS slave supported.
-- LSS slave node Id and bitrate is stored into EEPROM, if available.
-- see bootload device [Object Dictionary](c2000_bootloader.md)
+- LSS slave node Id and bitrate is stored into EEPROM, if available.  Refer to [EEPROM Utilization](#eeprom-utilization)
+- see bootloader device [Object Dictionary](c2000_bootloader.md)
 
 ## Execution Flow
 ```mermaid
@@ -40,3 +40,10 @@ flowchart TD
     B -->|invalid|D
     J -->|invalid|D
 ```
+
+## EEPROM Utilization
+
+| Address       |  Usage           |
+|---------------| -----------------|
+| 0x0000-0x0003 | <table><thead>Entry Signature</thead> <tbody><tr><td>0x0000-0x0001</td><td>Length of Entry(0x0004)</td></tr><tr><td>0x0002-0x0003</td><td>CRC16 of Entry</td></tr></tbody></table>|
+| 0x0040-0x0043 | <table><thead>Entry: LSS Configuration</thead><tbody><tr><td>0x0040-0x0041</td><td>LSS bit rate</td></tr><tr><td>0x0042-0x0043</td><td>LSS node ID</td></tr></tbody></table> |
