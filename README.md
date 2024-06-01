@@ -26,7 +26,8 @@ This is a CANopen bootloader for C2000 microcontroller using CANopenNode.
 ```mermaid
 flowchart TD
     A(Reset) --> B{Check App CRC}
-    B -->|valid|C{Check Boot flag}
+    B -->|valid|J{Check Node ID}
+    J -->|valid|C{Check Boot flag}
     C -->|BOOTLOADER_RUN_VAL|D(Run Bootloader)
     C -->|APPLICATION_RUN_VAL|E(Run Application)
     C -->|other value|F[Timer on]
@@ -37,4 +38,5 @@ flowchart TD
     H -->|yes|I[Timer off]
     I -->D
     B -->|invalid|D
+    J -->|invalid|D
 ```

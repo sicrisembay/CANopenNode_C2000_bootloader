@@ -23,6 +23,79 @@
 #define SDO_CLI_BLOCK false
 #define OD_STATUS_BITS NULL
 
+#if (CO_CONFIG_LEDS)
+#define CONCAT(x, y)        x##y
+#define CONCAT_L1(x, y)     CONCAT(x, y)
+#if ((CONFIG_CANOPEN_LED_RED_GPIO >= 0) && (CONFIG_CANOPEN_LED_RED_GPIO <= 31))
+    #define RED_LED_SET     CONCAT_L1(GpioDataRegs.GPASET.bit.GPIO, CONFIG_CANOPEN_LED_RED_GPIO) = 1
+    #define RED_LED_CLEAR   CONCAT_L1(GpioDataRegs.GPACLEAR.bit.GPIO, CONFIG_CANOPEN_LED_RED_GPIO) = 1
+    #define RED_LED_PUD     CONCAT_L1(GpioCtrlRegs.GPAPUD.bit.GPIO, CONFIG_CANOPEN_LED_RED_GPIO) = 1
+    #define RED_LED_DIR     CONCAT_L1(GpioCtrlRegs.GPADIR.bit.GPIO, CONFIG_CANOPEN_LED_RED_GPIO) = 1
+    #if (CONFIG_CANOPEN_LED_RED_GPIO <= 15)
+        #define RED_LED_MUX     CONCAT_L1(GpioCtrlRegs.GPAMUX1.bit.GPIO, CONFIG_CANOPEN_LED_RED_GPIO) = 0
+    #else
+        #define RED_LED_MUX     CONCAT_L1(GpioCtrlRegs.GPAMUX2.bit.GPIO, CONFIG_CANOPEN_LED_RED_GPIO) = 0
+    #endif
+#elif ((CONFIG_CANOPEN_LED_RED_GPIO >= 32) && (CONFIG_CANOPEN_LED_RED_GPIO <= 63))
+    #define RED_LED_SET     CONCAT_L1(GpioDataRegs.GPBSET.bit.GPIO, CONFIG_CANOPEN_LED_RED_GPIO) = 1
+    #define RED_LED_CLEAR   CONCAT_L1(GpioDataRegs.GPBCLEAR.bit.GPIO, CONFIG_CANOPEN_LED_RED_GPIO) = 1
+    #define RED_LED_PUD     CONCAT_L1(GpioCtrlRegs.GPBPUD.bit.GPIO, CONFIG_CANOPEN_LED_RED_GPIO) = 1
+    #define RED_LED_DIR     CONCAT_L1(GpioCtrlRegs.GPBDIR.bit.GPIO, CONFIG_CANOPEN_LED_RED_GPIO) = 1
+    #if (CONFIG_CANOPEN_LED_RED_GPIO <= 47)
+        #define RED_LED_MUX     CONCAT_L1(GpioCtrlRegs.GPBMUX1.bit.GPIO, CONFIG_CANOPEN_LED_RED_GPIO) = 0
+    #else
+        #define RED_LED_MUX     CONCAT_L1(GpioCtrlRegs.GPBMUX2.bit.GPIO, CONFIG_CANOPEN_LED_RED_GPIO) = 0
+    #endif
+#elif ((CONFIG_CANOPEN_LED_RED_GPIO >= 64) && (CONFIG_CANOPEN_LED_RED_GPIO <= 87))
+    #define RED_LED_SET     CONCAT_L1(GpioDataRegs.GPCSET.bit.GPIO, CONFIG_CANOPEN_LED_RED_GPIO) = 1
+    #define RED_LED_CLEAR   CONCAT_L1(GpioDataRegs.GPCCLEAR.bit.GPIO, CONFIG_CANOPEN_LED_RED_GPIO) = 1
+    #define RED_LED_PUD     CONCAT_L1(GpioCtrlRegs.GPCPUD.bit.GPIO, CONFIG_CANOPEN_LED_RED_GPIO) = 1
+    #define RED_LED_DIR     CONCAT_L1(GpioCtrlRegs.GPCDIR.bit.GPIO, CONFIG_CANOPEN_LED_RED_GPIO) = 1
+    #if (CONFIG_CANOPEN_LED_RED_GPIO <= 79)
+        #define RED_LED_MUX     CONCAT_L1(GpioCtrlRegs.GPCMUX1.bit.GPIO, CONFIG_CANOPEN_LED_RED_GPIO) = 0
+    #else
+        #define RED_LED_MUX     CONCAT_L1(GpioCtrlRegs.GPCMUX2.bit.GPIO, CONFIG_CANOPEN_LED_RED_GPIO) = 0
+    #endif
+#else
+    #error "Unsupported Red LED GPIO"
+#endif /* CONFIG_CANOPEN_LED_RED_GPIO */
+
+#if ((CONFIG_CANOPEN_LED_GREEN_GPIO >= 0) && (CONFIG_CANOPEN_LED_GREEN_GPIO <= 31))
+    #define GREEN_LED_SET     CONCAT_L1(GpioDataRegs.GPASET.bit.GPIO, CONFIG_CANOPEN_LED_GREEN_GPIO) = 1
+    #define GREEN_LED_CLEAR   CONCAT_L1(GpioDataRegs.GPACLEAR.bit.GPIO, CONFIG_CANOPEN_LED_GREEN_GPIO) = 1
+    #define GREEN_LED_PUD     CONCAT_L1(GpioCtrlRegs.GPAPUD.bit.GPIO, CONFIG_CANOPEN_LED_GREEN_GPIO) = 1
+    #define GREEN_LED_DIR     CONCAT_L1(GpioCtrlRegs.GPADIR.bit.GPIO, CONFIG_CANOPEN_LED_GREEN_GPIO) = 1
+    #if (CONFIG_CANOPEN_LED_GREEN_GPIO <= 15)
+        #define GREEN_LED_MUX     CONCAT_L1(GpioCtrlRegs.GPAMUX1.bit.GPIO, CONFIG_CANOPEN_LED_GREEN_GPIO) = 0
+    #else
+        #define GREEN_LED_MUX     CONCAT_L1(GpioCtrlRegs.GPAMUX2.bit.GPIO, CONFIG_CANOPEN_LED_GREEN_GPIO) = 0
+    #endif
+#elif ((CONFIG_CANOPEN_LED_GREEN_GPIO >= 32) && (CONFIG_CANOPEN_LED_GREEN_GPIO <= 63))
+    #define GREEN_LED_SET     CONCAT_L1(GpioDataRegs.GPBSET.bit.GPIO, CONFIG_CANOPEN_LED_GREEN_GPIO) = 1
+    #define GREEN_LED_CLEAR   CONCAT_L1(GpioDataRegs.GPBCLEAR.bit.GPIO, CONFIG_CANOPEN_LED_GREEN_GPIO) = 1
+    #define GREEN_LED_PUD     CONCAT_L1(GpioCtrlRegs.GPBPUD.bit.GPIO, CONFIG_CANOPEN_LED_GREEN_GPIO) = 1
+    #define GREEN_LED_DIR     CONCAT_L1(GpioCtrlRegs.GPBDIR.bit.GPIO, CONFIG_CANOPEN_LED_GREEN_GPIO) = 1
+    #if (CONFIG_CANOPEN_LED_GREEN_GPIO <= 47)
+        #define GREEN_LED_MUX     CONCAT_L1(GpioCtrlRegs.GPBMUX1.bit.GPIO, CONFIG_CANOPEN_LED_GREEN_GPIO) = 0
+    #else
+        #define GREEN_LED_MUX     CONCAT_L1(GpioCtrlRegs.GPBMUX2.bit.GPIO, CONFIG_CANOPEN_LED_GREEN_GPIO) = 0
+    #endif
+#elif ((CONFIG_CANOPEN_LED_GREEN_GPIO >= 64) && (CONFIG_CANOPEN_LED_GREEN_GPIO <= 87))
+    #define GREEN_LED_SET     CONCAT_L1(GpioDataRegs.GPCSET.bit.GPIO, CONFIG_CANOPEN_LED_GREEN_GPIO) = 1
+    #define GREEN_LED_CLEAR   CONCAT_L1(GpioDataRegs.GPCCLEAR.bit.GPIO, CONFIG_CANOPEN_LED_GREEN_GPIO) = 1
+    #define GREEN_LED_PUD     CONCAT_L1(GpioCtrlRegs.GPCPUD.bit.GPIO, CONFIG_CANOPEN_LED_GREEN_GPIO) = 1
+    #define GREEN_LED_DIR     CONCAT_L1(GpioCtrlRegs.GPCDIR.bit.GPIO, CONFIG_CANOPEN_LED_GREEN_GPIO) = 1
+    #if (CONFIG_CANOPEN_LED_GREEN_GPIO <= 79)
+        #define GREEN_LED_MUX     CONCAT_L1(GpioCtrlRegs.GPCMUX1.bit.GPIO, CONFIG_CANOPEN_LED_GREEN_GPIO) = 0
+    #else
+        #define GREEN_LED_MUX     CONCAT_L1(GpioCtrlRegs.GPCMUX2.bit.GPIO, CONFIG_CANOPEN_LED_GREEN_GPIO) = 0
+    #endif
+#else
+    #error "Unsupported Green LED GPIO"
+#endif /* CONFIG_CANOPEN_LED_GREEN_GPIO */
+
+#endif /* CO_CONFIG_LEDS */
+
 typedef enum {
     MODE_RUN_BOOT,
     MODE_TIMER,
@@ -67,7 +140,9 @@ static mainStorage_t mainStorage = {
 #endif
 };
 
+#if ((CO_CONFIG_LSS & CO_CONFIG_LSS_SLAVE) != 0) && CONFIG_HAS_EEPROM
 static SIGNATURE_T signature;
+#endif
 
 #pragma CODE_SECTION(Device_reset, "ramfuncs");
 void Device_reset(void)
@@ -205,12 +280,12 @@ static void InitFlashWaitState(void)
 
 
 static bool_t LSScfgStoreCallback(void *object, uint8_t id, uint16_t bitRate) {
-    uint8_t tmpBuf[4];
-    SIGNATURE_T tmpSignature;
     mainStorage_t * storage = object;
     storage->pendingNodeId = id;
     storage->pendingBitRate = bitRate;
-
+#if CONFIG_HAS_EEPROM
+    uint8_t tmpBuf[4];
+    SIGNATURE_T tmpSignature;
     // Write LSS data block (node ID and bit rate) to EEPROM
     tmpBuf[0] = bitRate & 0xFF;
     tmpBuf[1] = (bitRate >> 8) & 0xFF;
@@ -237,9 +312,45 @@ static bool_t LSScfgStoreCallback(void *object, uint8_t id, uint16_t bitRate) {
         /* Clear flag */
         CpuTimer0Regs.TCR.bit.TIF = 1;
     }
-
+#endif /* CONFIG_HAS_EEPROM */
     return true;
 }
+
+
+#if (CO_CONFIG_LEDS)
+static void SetRedLEDState(uint16_t state)
+{
+#if CONFIG_CANOPEN_LED_RED_ACTIVE_HIGH
+    if(state != 0) {
+        RED_LED_SET;
+    } else {
+        RED_LED_CLEAR;
+    }
+#else
+    if(state != 0) {
+        RED_LED_CLEAR;
+    } else {
+        RED_LED_SET;
+    }
+#endif
+}
+static void SetGreenLEDState(uint16_t state)
+{
+#if CANOPEN_LED_GREEN_ACTIVE_HIGH
+    if(state != 0) {
+        GREEN_LED_SET;
+    } else {
+        GREEN_LED_CLEAR;
+    }
+#else
+    if(state != 0) {
+        GREEN_LED_CLEAR;
+    } else {
+        GREEN_LED_SET;
+    }
+#endif
+}
+#endif /* CO_CONFIG_LEDS */
 
 
 int main()
@@ -366,7 +477,7 @@ int main()
 #error "Invalid CAN-B Tx GPIO"
 #endif
 
-#if CONFIG_CAN_B_RX_GPIO17
+#if CONFIG_CAN_RX_GPIO17
     GpioCtrlRegs.GPAPUD.bit.GPIO17 = 0;     // Enable pull-up for GPIO17(CANRXB)
     GpioCtrlRegs.GPAQSEL2.bit.GPIO17 = 3;   // Asynch qual for GPIO17 (CANRXB)
     GpioCtrlRegs.GPAMUX2.bit.GPIO17 = 2;    // Configure GPIO17 for CANRXB
@@ -416,6 +527,17 @@ int main()
         mainStorage.pendingNodeId = ((uint16_t)(tmpBuf[2])) +
                                     (((uint16_t)tmpBuf[3]) << 8);
     }
+#endif
+
+#if (CO_CONFIG_LEDS)
+    EALLOW;
+    RED_LED_PUD;
+    RED_LED_DIR;
+    RED_LED_MUX;
+    GREEN_LED_PUD;
+    GREEN_LED_DIR;
+    GREEN_LED_MUX;
+    EDIS;
 #endif
 
     while(reset != CO_RESET_APP) {
@@ -480,11 +602,8 @@ int main()
         CO_LSSslave_initCfgStoreCallback(CO->LSSslave, &mainStorage, LSScfgStoreCallback);
 #endif
 
-#if (CO_CONFIG_PDO & (CO_CONFIG_RPDO_ENABLE | CO_CONFIG_TPDO_ENABLE))
-        err = CO_CANopenInitPDO(CO, CO->em, OD, activeNodeId, &errInfo);
-        if(err != CO_ERROR_NO) {
-            while(1);
-        }
+#if (CO_CONFIG_LEDS)
+        CO_LEDs_init(CO->LEDs);
 #endif
 
 #if (CO_CONFIG_PROG & CO_CONFIG_PROG_ENABLE)
@@ -513,6 +632,12 @@ int main()
         CpuTimer0Regs.TCR.bit.TIF = 1;
         CpuTimer0Regs.TCR.bit.TSS = 0;
 
+        if(CO->nodeIdUnconfigured == true) {
+            /* Does not have valid node ID */
+            bootMode = MODE_RUN_BOOT;
+            timerCounter = 0;
+        }
+
         while(reset == CO_RESET_NOT) {
             extern void CO_CANpacket_process(CO_CANmodule_t *CANmodule);
             CO_CANpacket_process(CO->CANmodule);
@@ -537,6 +662,10 @@ int main()
 
                 uint32_t timeDifference_us = 1000;
                 reset = CO_process(CO, false, timeDifference_us, NULL);
+#if (CO_CONFIG_LEDS)
+                SetRedLEDState(CO_LED_RED(CO->LEDs, CO_LED_CANopen));
+                SetGreenLEDState(CO_LED_GREEN(CO->LEDs, CO_LED_CANopen));
+#endif /* CO_CONFIG_LEDS */
             }
         }
     }

@@ -34,6 +34,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "DSP2833x_Device.h"
+#include "autoconf.h"
 
 #ifdef CO_DRIVER_CUSTOM
 #include "CO_driver_custom.h"
@@ -45,7 +46,11 @@ extern "C" {
 
 /* Stack configuration override default values.
  * For more information see file CO_config.h. */
+#if (CONFIG_CANOPEN_LED)
+#define CO_CONFIG_LEDS  CO_CONFIG_LEDS_ENABLE
+#else
 #define CO_CONFIG_LEDS  0
+#endif
 
 /* Basic definitions. If big endian, CO_SWAP_xx macros must swap bytes. */
 #define CO_LITTLE_ENDIAN

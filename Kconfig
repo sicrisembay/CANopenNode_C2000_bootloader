@@ -155,4 +155,24 @@ menuconfig HAS_EEPROM
         config LSS_DATA_BLOCK_ADDR
             hex "LSS Data Block Address"
             default 0x0040
-    endif
+    endif # HAS_EEPROM
+
+menuconfig CANOPEN_LED
+    bool "LED indicator"
+    default n
+    if CANOPEN_LED
+        config CANOPEN_LED_RED_GPIO
+            int "Red LED GPIO"
+            range 0 87
+            default 31
+        config CANOPEN_LED_RED_ACTIVE_HIGH
+            bool "Red LED Active High"
+            default n
+        config CANOPEN_LED_GREEN_GPIO
+            int "Green LED GPIO"
+            range 0 87
+            default 34
+        config CANOPEN_LED_GREEN_ACTIVE_HIGH
+            bool "Green LED Active High"
+            default n
+    endif # CANOPEN_LED
