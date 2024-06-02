@@ -10,7 +10,14 @@ jobs:
       volumes:
         - ${{github.workspace}}:/myBuild
     steps:
+      - name: TI tools
+        run: ls -la /opt/ti
+      - name: Test folders
+        run: ls -la /
       - name: Checkout the repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          ref: 'main'
+          submodules: 'true'
       - name: Test (List checkout files)
         run: ls /myBuild
