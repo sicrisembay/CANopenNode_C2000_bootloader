@@ -10,8 +10,8 @@ jobs:
       volumes:
         - ${{github.workspace}}:/myBuild
     steps:
-      - name: Update CA certificates
-        run: apt install --yes --reinstall ca-certificates
+      - name: Update
+        run: apt update
       - name: Checkout the repo
         uses: actions/checkout@v4
         with:
