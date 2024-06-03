@@ -17,5 +17,11 @@ jobs:
         with:
           ref: 'main'
           submodules: 'true'
-      - name: Test (List checkout files)
+      - name: List checkout files
         run: ls /myBuild
+      - name: Build
+        run: cd /myBuild && ./build.sh
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+          name: build-artifact
+          path: /myBuild/artifact/
