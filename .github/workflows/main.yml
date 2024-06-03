@@ -23,5 +23,6 @@ jobs:
         run: cd /myBuild && ./build.sh
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
+        with:
           name: build-artifact
           path: /myBuild/artifact/
