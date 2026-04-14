@@ -31,6 +31,7 @@ jobs:
         if: github.event_name == 'create' && github.ref_type == 'tag'
         run: |
           cd /myBuild
+          apt install -y zip
           zip -r CANopenNode_C2000_bootloader_${{ github.ref_name }}.zip artifact/
       - name: Upload Artifacts (Regular Build)
         if: github.event_name != 'create'

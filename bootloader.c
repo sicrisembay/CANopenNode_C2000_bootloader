@@ -317,6 +317,19 @@ static bool_t LSScfgStoreCallback(void *object, uint8_t id, uint16_t bitRate) {
 }
 
 
+static bool_t LSScheckBitRate(void *object, uint16_t bitRate)
+{
+#if CONFIG_HAS_EEPROM
+    (void)object;  // unused
+    return BitRateIsSupported(bitRate);
+#else
+    (void)object;  // unused
+    (void)bitRate;  // unused
+    return false;
+#endif
+}
+
+
 #if (CO_CONFIG_LEDS)
 static void SetRedLEDState(uint16_t state)
 {
@@ -606,6 +619,7 @@ int main()
 
 #if (CO_CONFIG_LSS & CO_CONFIG_LSS_SLAVE)
         CO_LSSslave_initCfgStoreCallback(CO->LSSslave, &mainStorage, LSScfgStoreCallback);
+        CO_LSSslave_initCheckBitRateCallback(CO->LSSslave, (void *)0, LSScheckBitRate);
 #endif
 
 #if (CO_CONFIG_LEDS)
