@@ -36,43 +36,51 @@ typedef struct {
 } BTC_CONFIG_ENTRY_T;
 
 #if CONFIG_CORE_FREQ_150MHZ
+/* CiA 601 recommended sampling points: 87.5% for <=500kbps, 75% for 1000kbps.
+ * Note: 10kbps and 800kbps are not achievable with a 150MHz system clock.
+ * Note: 86.7% is the closest achievable SP to 87.5% for <=500kbps at 150MHz
+ *       due to integer constraints on BRPREG, TSEG1REG, and TSEG2REG. */
+#if ((CONFIG_BITRATE == 10) || (CONFIG_BITRATE == 800))
+#error "Unsupported default bit rate!"
+#endif
+
 static BTC_CONFIG_ENTRY_T const BTC_CONFIG_TABLE[] = {
-    /* 20kbps, sampling at 86.7% */
+    /* 20kbps, sampling at 86.7% (closest achievable to CiA 601 target 87.5%) */
     {
         .bit_rate_kbps = 20,
         .brp = 249,
         .tseg1 = 11,
         .tseg2 = 1
     },
-    /* 50kbps, sampling at 86.7% */
+    /* 50kbps, sampling at 86.7% (closest achievable to CiA 601 target 87.5%) */
     {
         .bit_rate_kbps = 50,
         .brp = 99,
         .tseg1 = 11,
         .tseg2 = 1
     },
-    /* 125kbps, sampling at 86.7% */
+    /* 125kbps, sampling at 86.7% (closest achievable to CiA 601 target 87.5%) */
     {
         .bit_rate_kbps = 125,
         .brp = 39,
         .tseg1 = 11,
         .tseg2 = 1
     },
-    /* 250kbps, sampling at 86.7% */
+    /* 250kbps, sampling at 86.7% (closest achievable to CiA 601 target 87.5%) */
     {
         .bit_rate_kbps = 250,
         .brp = 19,
         .tseg1 = 11,
         .tseg2 = 1
     },
-    /* 500kbps, sampling at 86.7% */
+    /* 500kbps, sampling at 86.7% (closest achievable to CiA 601 target 87.5%) */
     {
         .bit_rate_kbps = 500,
         .brp = 9,
         .tseg1 = 11,
         .tseg2 = 1
     },
-    /* 1000kbps, sampling at 73.3% */
+    /* 1000kbps, sampling at 73.3% (closest achievable to CiA 601 target 75%) */
     {
         .bit_rate_kbps = 1000,
         .brp = 4,
@@ -81,22 +89,59 @@ static BTC_CONFIG_ENTRY_T const BTC_CONFIG_TABLE[] = {
     },
 };
 #elif CONFIG_CORE_FREQ_100MHZ
+/* CiA 601 recommended sampling points: 87.5% for <=500kbps, 75% for 1000kbps.
+ * Note: 800kbps is not achievable with a 100MHz system clock.
+ * Note: 85% is the closest achievable SP to 87.5% for most rates at 100MHz
+ *       due to integer constraints on BRPREG, TSEG1REG, and TSEG2REG.
+ *       125kbps achieves the exact 87.5% target. */
+#if (CONFIG_BITRATE == 800)
+#error "Unsupported default bit rate!"
+#endif
+
 static BTC_CONFIG_ENTRY_T const BTC_CONFIG_TABLE[] = {
-    /* 250kbps */
+    /* 10kbps, sampling at 85% (closest achievable to CiA 601 target 87.5%) */
+    {
+        .bit_rate_kbps = 10,
+        .brp = 249,
+        .tseg1 = 15,
+        .tseg2 = 2
+    },
+    /* 20kbps, sampling at 85% (closest achievable to CiA 601 target 87.5%) */
+    {
+        .bit_rate_kbps = 20,
+        .brp = 124,
+        .tseg1 = 15,
+        .tseg2 = 2
+    },
+    /* 50kbps, sampling at 85% (closest achievable to CiA 601 target 87.5%) */
+    {
+        .bit_rate_kbps = 50,
+        .brp = 49,
+        .tseg1 = 15,
+        .tseg2 = 2
+    },
+    /* 125kbps, sampling at 87.5% (meets CiA 601 target exactly) */
+    {
+        .bit_rate_kbps = 125,
+        .brp = 24,
+        .tseg1 = 12,
+        .tseg2 = 1
+    },
+    /* 250kbps, sampling at 85% (closest achievable to CiA 601 target 87.5%) */
     {
         .bit_rate_kbps = 250,
-        .brp = 19,
-        .tseg1 = 6,
-        .tseg2 = 1
+        .brp = 9,
+        .tseg1 = 15,
+        .tseg2 = 2
     },
-    /* 500kbps */
+    /* 500kbps, sampling at 85% (closest achievable to CiA 601 target 87.5%) */
     {
         .bit_rate_kbps = 500,
-        .brp = 9,
-        .tseg1 = 6,
-        .tseg2 = 1
+        .brp = 4,
+        .tseg1 = 15,
+        .tseg2 = 2
     },
-    /* 1000kbps */
+    /* 1000kbps, sampling at 80% (closest achievable to CiA 601 target 75%) */
     {
         .bit_rate_kbps = 1000,
         .brp = 4,
@@ -110,6 +155,20 @@ static BTC_CONFIG_ENTRY_T const BTC_CONFIG_TABLE[] = {
 
 #define N_BTC_CONFIG_ENTRY      (sizeof(BTC_CONFIG_TABLE) / sizeof(BTC_CONFIG_TABLE[0]))
 #define CAN_MAILBOX_TX          (31)
+
+
+/******************************************************************************/
+bool_t BitRateIsSupported(uint16_t bitRate_kbps)
+{
+    bool_t is_found = false;
+    for(uint16_t i = 0; i < N_BTC_CONFIG_ENTRY; i++) {
+        if(BTC_CONFIG_TABLE[i].bit_rate_kbps == bitRate_kbps) {
+            is_found = true;
+            break;
+        }
+    }
+    return is_found;
+}
 
 /******************************************************************************/
 void CO_CANsetConfigurationMode(void *CANptr){

@@ -169,6 +169,7 @@ typedef struct {
 #define CO_FLAG_SET(rxNew) {CO_MemoryBarrier(); rxNew = (void*)1L;}
 #define CO_FLAG_CLEAR(rxNew) {CO_MemoryBarrier(); rxNew = NULL;}
 
+bool_t BitRateIsSupported(uint16_t bitRate_kbps);
 
 #ifdef __cplusplus
 }
